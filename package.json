@@ -1,0 +1,40 @@
+{
+  "name": "gs-slack-kintai",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "login": "./node_modules/.bin/clasp login",
+    "create_gas": "./node_modules/.bin/clasp create --title gs-slack-kintai --type webapp --rootDir ./dist && cp -f ./setting/appsscript.json ./dist/",
+    "open_gas": "./node_modules/.bin/clasp open",
+    "pull_gas": "./node_modules/.bin/clasp pull",
+    "push_gas": "./node_modules/.bin/clasp push",
+    "build": "./node_modules/.bin/webpack --mode production",
+    "deploy": "npm run build && npm run push_gas"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Serip39/gs-slack-kintai.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Serip39/gs-slack-kintai/issues"
+  },
+  "homepage": "https://github.com/Serip39/gs-slack-kintai#readme",
+  "devDependencies": {
+    "@babel/core": "^7.3.3",
+    "@babel/preset-env": "^7.3.1",
+    "@babel/register": "^7.0.0",
+    "@google/clasp": "^2.0.1",
+    "babel-eslint": "^10.0.1",
+    "babel-loader": "^8.0.5",
+    "babel-preset-gas": "^2.0.4",
+    "eslint": "^5.15.1",
+    "eslint-plugin-googleappsscript": "^1.0.1",
+    "gas-lib": "^2.0.2",
+    "gas-webpack-plugin": "^1.0.2",
+    "webpack": "^4.29.1",
+    "webpack-cli": "^3.2.3"
+  }
+}
