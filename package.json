@@ -1,7 +1,7 @@
 {
   "name": "gs-slack-kintai",
   "version": "1.0.0",
-  "description": "",
+  "description": "GAS local-development with google/clasp, babel, webpack, eslint",
   "main": "index.js",
   "scripts": {
     "login": "./node_modules/.bin/clasp login",
@@ -10,7 +10,8 @@
     "pull_gas": "./node_modules/.bin/clasp pull",
     "push_gas": "./node_modules/.bin/clasp push",
     "build": "./node_modules/.bin/webpack --mode production",
-    "deploy": "npm run build && npm run push_gas"
+    "deploy": "npm run build && npm run push_gas",
+    "lint": "./node_modules/.bin/eslint ./src"
   },
   "repository": {
     "type": "git",

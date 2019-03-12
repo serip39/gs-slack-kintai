@@ -1,5 +1,5 @@
-import GasPlugin from 'gas-webpack-plugin';
-import path from 'path';
+import GasPlugin from 'gas-webpack-plugin'
+import path from 'path'
 
 export default {
   mode: 'development',

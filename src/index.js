@@ -1,5 +1,7 @@
-var echo = require('./echo');
-/**
- * Return write arguments.
- */
-global.echo = echo;
+import Slack from './slack'
+
+global.test = () => {
+  const slack = new Slack('test')
+  Logger.log(slack)
+  slack.test()
+}
