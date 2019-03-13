@@ -1,25 +1,26 @@
 export default class {
-  constructor(name) {
+  constructor (name) {
     this.name = name
   }
 
-  postSlack(text) {
-    var url = "https://hooks.slack.com/services/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";
-    var options = {
-      "method" : "POST",
-      "headers": {"Content-type": "application/json"},
-      "payload" : '{"text":"' + text + '"}'
-    };
+  postSlack (text) {
+    const url = 'https://hooks.slack.com/services/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'
+    let data = { text }
+    const options = {
+      'method': 'POST',
+      'contentType': 'application/json',
+      'payload': JSON.stringify(data)
+    }
     UrlFetchApp.fetch(url, options)
   }
 
-  test() {
-    this.postSlack("これはテストです")
+  test () {
+    this.postSlack('これはテストです')
   }
 
-  doPost(e) {
-    if (e.parameter.user_name === "slackbot") return
-    var message = "こんにちは " + e.parameter.user_name + "さん"
+  doPost (e) {
+    if (e.parameter.user_name === 'slackbot') return
+     let message = 'こんにちは ' + e.parameter.user_name + 'さん'
     this.postSlack(message)
   }
 }

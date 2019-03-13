@@ -1,9 +1,13 @@
 module.exports = {
-  parser: "babel-eslint",
-  plugins: [
-    "googleappsscript"
-  ],
+  parser: 'babel-eslint',
   env: {
-    "googleappsscript/googleappsscript": true
-  }
+    'googleappsscript/googleappsscript': true,
+    'browser': true,
+    'node': true,
+    'es6' : true
+  },
+  extends: 'standard',
+  plugins: [
+    'googleappsscript'
+  ]
 }
