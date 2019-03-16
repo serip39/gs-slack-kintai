@@ -13,14 +13,4 @@ export default class {
     }
     UrlFetchApp.fetch(url, options)
   }
-
-  test () {
-    this.postSlack('これはテストです')
-  }
-
-  doPost (e) {
-    if (e.parameter.user_name === 'slackbot') return
-     let message = 'こんにちは ' + e.parameter.user_name + 'さん'
-    this.postSlack(message)
-  }
 }

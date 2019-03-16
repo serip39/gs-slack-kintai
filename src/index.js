@@ -1,7 +1,15 @@
 import Slack from './slack'
 
+const slack = new Slack('test')
+
 global.test = () => {
-  const slack = new Slack('test')
   Logger.log(slack)
-  slack.test()
+  slack.postSlack('これはテストです')
+}
+
+global.doPost = (e) => {
+  Logger.log(slack)
+  if (e.parameter.user_name === 'slackbot') return
+  let message = 'こんにちは ' + e.parameter.user_name + 'さん'
+  slack.postSlack(message)
 }
