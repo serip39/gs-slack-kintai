@@ -1,5 +1,6 @@
 import GasPlugin from 'gas-webpack-plugin'
 import path from 'path'
+import Dotenv from 'dotenv-webpack'
 
 export default {
   mode: 'development',
@@ -30,5 +31,8 @@ export default {
   },
   plugins: [
     new GasPlugin(),
+    new Dotenv({
+      path: './.env'
+    })
   ]
 }

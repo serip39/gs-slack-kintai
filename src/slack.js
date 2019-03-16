@@ -4,7 +4,7 @@ export default class {
   }
 
   postSlack (text) {
-    const url = 'https://hooks.slack.com/services/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'
+    const url = process.env.SLACK_BOT_WEBHOCKS_URL
     let data = { text }
     const options = {
       'method': 'POST',
