@@ -1,6 +1,17 @@
 import Slack from './slack'
+import GASPropertiesService from './gasPropertiesService'
+import Spreadsheet from './spreadsheet'
 
+const globalSettings = new GASPropertiesService()
+const spreadsheet = new Spreadsheet(globalSettings.get('spreadsheet'))
 const slack = new Slack('test')
+
+global.initialSetting = () => {
+  if (!spreadsheet.id) {
+    const spreadsheetId = spreadsheet.create('Kintai-Timesheets')
+    globalSettings.set('spreadsheet', spreadsheetId)
+  }
+}
 
 global.test = () => {
   Logger.log(slack)
