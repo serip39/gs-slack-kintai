@@ -11,6 +11,7 @@ global.initialSetting = () => {
     const spreadsheetId = spreadsheet.create('Kintai-Timesheets')
     globalSettings.set('spreadsheet', spreadsheetId)
   }
+  spreadsheet.initialSetting()
 }
 
 global.test = () => {
