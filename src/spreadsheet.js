@@ -10,17 +10,28 @@ export default class {
     return this.id
   }
 
+  createTableHeaderColumns (sheet, array, startRow, startCol, color) {
+    const columns = [array]
+    const numRow = columns.length
+    const numCol = columns[0].length
+    sheet.getRange(startRow, startCol, numRow, numCol).setValues(columns)
+    sheet.getRange(startRow, startCol, numRow, numCol).setBackground(color)
+  }
+
   initialSetting () {
     this.target.renameActiveSheet('_メンバー')
     const memberSheet = this.target.getActiveSheet()
-    const columns = [
-      ['No.', '氏名', 'slack名', '雇用形態', '勤務形態', '備考']
-    ]
-    const rows = columns.length
-    const cols = columns[0].length
-    memberSheet.getRange(1, 1, rows, cols).setValues(columns)
-    memberSheet.getRange(1, 1, rows, cols).setBackground('#CCCCCC')
+    const header = ['No.', '氏名', 'slack名', '雇用形態', '勤務形態', '備考']
+    const colorHeader = '#CCCCCC'
+    this.createTableHeaderColumns(memberSheet, header, 1, 1, colorHeader)
     memberSheet.autoResizeColumns(1, 1)
-    memberSheet.setColumnWidth(cols, 400)
+    memberSheet.setColumnWidth(header.length, 400)
+  }
+
+  createTimesheet (username) {
+    const timeSheet = this.target.insertSheet(username)
+    const header = ['出勤時間', '退勤時間', '残業時間', '深夜時間', '休憩時間', '労働時間', '勤怠状況']
+    const colorHeader = '#CCCCCC'
+    this.createTableHeaderColumns(timeSheet, header, 25, 2, colorHeader)
   }
 }
