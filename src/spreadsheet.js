@@ -1,3 +1,7 @@
+import Date from './date'
+
+const date = new Date()
+
 export default class {
   constructor (id) {
     this.id = id
@@ -33,5 +37,17 @@ export default class {
     const header = ['出勤時間', '退勤時間', '残業時間', '深夜時間', '休憩時間', '労働時間', '勤怠状況']
     const colorHeader = '#CCCCCC'
     this.createTableHeaderColumns(timeSheet, header, 25, 2, colorHeader)
+    this.createCalender(timeSheet)
+  }
+
+  createCalender (timeSheet) {
+    const calenderArray = date.createCalender('2019-02-01', '2019-04-30')
+    const numRow = calenderArray.length
+    const numCol = calenderArray[0].length
+    timeSheet.getRange(26, 1, numRow, numCol).setValues(calenderArray)
+  }
+
+  transposeArray (matrix) {
+    return matrix[0].map((col, i) => matrix.map(row => row[i]))
   }
 }
