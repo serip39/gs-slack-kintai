@@ -50,4 +50,10 @@ export default class {
   transposeArray (matrix) {
     return matrix[0].map((col, i) => matrix.map(row => row[i]))
   }
+
+  createlog (text) {
+    const sheet = this.target.getSheetByName('_log')
+    const now = date.getNow()
+    sheet.appendRow([now, text])
+  }
 }

@@ -3,12 +3,18 @@ export default class {
     this.name = name
   }
 
-  postSlack (text) {
-    const url = process.env.SLACK_BOT_WEBHOCKS_URL
-    let data = { text }
+  postSlack (params) {
+    const url = 'https://slack.com/api/chat.postMessage'
+    let data = {
+      channel: params.event.channel,
+      text: params.event.text
+    }
     const options = {
       'method': 'POST',
       'contentType': 'application/json',
+      'headers': {
+        'Authorization': 'Bearer ' + process.env.SLACK_BOT_OAUTH_TOKEN
+      },
       'payload': JSON.stringify(data)
     }
     UrlFetchApp.fetch(url, options)

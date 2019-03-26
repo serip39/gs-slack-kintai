@@ -16,19 +16,16 @@ global.initialSetting = () => {
 
 global.test = () => {
   Logger.log(slack)
-  slack.postSlack('これはテストです')
+  spreadsheet.createlog('test')
 }
 
 global.doPost = (e) => {
-  Logger.log(e)
-  // if (e.parameter.user_name === 'slackbot') return
-  // let message = 'こんにちは ' + e.parameter.user_name + 'さん'
-  // slack.postSlack(message)
-  const params = JSON.parse(e.parameter)
-  Logger.log(params)
+  const params = JSON.parse(e.postData.getDataAsString())
+  spreadsheet.createlog(params)
   if (params.type === 'url_verification') {
     slack.verificationForEventAPI(params)
-  } else {
-    Logger.log('get message!!!!')
+  } else if (params.type === 'event_callback') {
+    if (params.event.bot_id) return
+    slack.postSlack(params)
   }
 }

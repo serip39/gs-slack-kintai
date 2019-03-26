@@ -10,6 +10,12 @@ export default class {
     return calenders
   }
 
+  getNow () {
+    const now = new Date()
+    Logger.log(now)
+    return this.formatDate(now)
+  }
+
   formatDate (date, format) {
     if (!format) format = 'YYYY-MM-DD hh:mm:ss'
     format = format.replace(/YYYY/g, date.getFullYear())
