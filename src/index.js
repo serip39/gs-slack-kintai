@@ -20,8 +20,15 @@ global.test = () => {
 }
 
 global.doPost = (e) => {
-  Logger.log(slack)
-  if (e.parameter.user_name === 'slackbot') return
-  let message = 'こんにちは ' + e.parameter.user_name + 'さん'
-  slack.postSlack(message)
+  Logger.log(e)
+  // if (e.parameter.user_name === 'slackbot') return
+  // let message = 'こんにちは ' + e.parameter.user_name + 'さん'
+  // slack.postSlack(message)
+  const params = JSON.parse(e.parameter)
+  Logger.log(params)
+  if (params.type === 'url_verification') {
+    slack.verificationForEventAPI(params)
+  } else {
+    Logger.log('get message!!!!')
+  }
 }

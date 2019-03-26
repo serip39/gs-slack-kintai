@@ -13,4 +13,14 @@ export default class {
     }
     UrlFetchApp.fetch(url, options)
   }
+
+  verificationForEventAPI (params) {
+    const data = {
+      challenge: params.challenge
+    }
+    let response = ContentService.createTextOutput()
+    response.setContent(JSON.stringify(data))
+    response.setMimeType(ContentService.MimeType.JSON)
+    return response
+  }
 }
