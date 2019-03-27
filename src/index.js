@@ -15,8 +15,8 @@ global.initialSetting = () => {
 }
 
 global.test = () => {
-  Logger.log(slack)
-  spreadsheet.createlog('test')
+  const slackUsers = slack.getUserList()
+  spreadsheet.addSlackId(slackUsers)
 }
 
 global.doPost = (e) => {

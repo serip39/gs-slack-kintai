@@ -3,6 +3,18 @@ export default class {
     this.name = name
   }
 
+  getUserList () {
+    const url = 'https://slack.com/api/users.list?token=' + process.env.SLACK_BOT_OAUTH_TOKEN
+    const response = UrlFetchApp.fetch(url)
+    const data = JSON.parse(response.getContentText())
+    return data.members.map(user => {
+      return {
+        id: user.id,
+        name: user.name
+      }
+    })
+  }
+
   postSlack (params) {
     const url = 'https://slack.com/api/chat.postMessage'
     let data = {
