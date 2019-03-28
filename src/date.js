@@ -10,10 +10,9 @@ export default class {
     return calenders
   }
 
-  getNow () {
+  getNow (format) {
     const now = new Date()
-    Logger.log(now)
-    return this.formatDate(now)
+    return this.formatDate(now, format)
   }
 
   formatDate (date, format) {
