@@ -97,7 +97,7 @@ export default class {
     if (typeof output === 'object') {
       output = JSON.stringify(output)
     }
-    const sheet = this.target.getSheetByName('_log')
+    const sheet = this.target.getSheetByName('_dev')
     const now = date.getNow()
     sheet.appendRow([now, output])
   }
