@@ -1,7 +1,7 @@
 import Slack from './slack'
 import GASPropertiesService from './gasPropertiesService'
 import Spreadsheet from './spreadsheet'
-import { setReplyMsg } from './message'
+import { setMsgForConfirmation, setInteractiveResponseMsg } from './message'
 
 const globalSettings = new GASPropertiesService()
 const spreadsheet = new Spreadsheet(globalSettings.get('spreadsheet'))
@@ -16,10 +16,8 @@ global.initialSetting = () => {
 }
 
 global.test = () => {
-  const test = setReplyMsg('おはよう')
-  Logger.log(test)
-  // const slackUsers = slack.getUserList()
-  // spreadsheet.addSlackId(slackUsers)
+  const slackUsers = slack.getUserList()
+  spreadsheet.addSlackId(slackUsers)
 }
 
 global.doPost = (e) => {
@@ -28,14 +26,7 @@ global.doPost = (e) => {
     const payload = JSON.parse(e.parameter.payload)
     if (payload.type === 'interactive_message') {
       spreadsheet.createlog(payload)
-      let message = ''
-      if (payload.actions[0].value === 'true') {
-        message = `おはようございます！（出勤時間：<!date^${Math.round(payload.action_ts)}^{date_num} {time}| 1989-01-01 00:00 AM PST>）`
-      }
-      if (payload.actions[0].value === 'false') {
-        message = '打刻をキャンセルしました'
-      }
-      return ContentService.createTextOutput(message)
+      return ContentService.createTextOutput(setInteractiveResponseMsg(payload))
     }
   }
 
@@ -49,7 +40,7 @@ global.doPost = (e) => {
     const channel = params.event.channel
     const user = params.event.user
     const text = ''
-    const attachments = setReplyMsg(params.event.text)
+    const attachments = setMsgForConfirmation(params.event.text)
     slack.postEphemeral(channel, text, user, attachments)
   }
 }

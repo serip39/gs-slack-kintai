@@ -20,7 +20,22 @@ const strJP = (str) => {
   }
 }
 
-const message = (action) => {
+const greeting = (action) => {
+  switch (action) {
+    case 'begin':
+      return 'おはようございます！'
+    case 'finish':
+      return 'お疲れ様でした！'
+    case 'breakStart':
+      return 'ごゆっくり〜！'
+    case 'breakFinish':
+      return '気持ちを切り替えていきましょ！'
+    default:
+      return 'error'
+  }
+}
+
+const msgForConfirmation = (action) => {
   const textAction = strJP(action)
   return [
     {
@@ -47,7 +62,7 @@ const message = (action) => {
   ]
 }
 
-const setReplyMsg = (msg) => {
+const setMsgForConfirmation = (msg) => {
   Logger.log(msg)
   let userAction = ''
   Object.keys(commands).forEach(action => {
@@ -55,7 +70,14 @@ const setReplyMsg = (msg) => {
       userAction = action
     }
   })
-  return message(userAction)
+  return msgForConfirmation(userAction)
 }
 
-export { setReplyMsg }
+const setInteractiveResponseMsg = (payload) => {
+  if (payload.actions[0].value === 'false') return '打刻をキャンセルしました'
+  const greet = greeting(payload.callback_id)
+  const time = strJP(payload.callback_id) + '時間'
+  return `${greet}（${time}：<!date^${Math.round(payload.action_ts)}^{date_num} {time}| 1989-01-01 00:00 AM PST>）`
+}
+
+export { setMsgForConfirmation, setInteractiveResponseMsg }
