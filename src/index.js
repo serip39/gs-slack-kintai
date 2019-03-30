@@ -26,6 +26,7 @@ global.doPost = (e) => {
     const payload = JSON.parse(e.parameter.payload)
     if (payload.type === 'interactive_message') {
       spreadsheet.createlog(payload)
+      spreadsheet.addLogForTimestamp(payload)
       return ContentService.createTextOutput(setInteractiveResponseMsg(payload))
     }
   }

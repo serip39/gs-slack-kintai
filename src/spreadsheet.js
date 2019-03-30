@@ -89,6 +89,15 @@ export default class {
     timeSheet.getRange(26, 1, numRow, numCol).setValues(calenderArray)
   }
 
+  addLogForTimestamp (payload) {
+    const time = date.getNow()
+    const user = payload.user.name
+    const task = payload.callback_id
+    const posted = 0
+    const sheet = this.target.getSheetByName('_log')
+    sheet.appendRow([time, user, task, posted])
+  }
+
   transposeArray (matrix) {
     return matrix[0].map((col, i) => matrix.map(row => row[i]))
   }

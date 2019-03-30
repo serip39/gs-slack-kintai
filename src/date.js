@@ -15,6 +15,11 @@ export default class {
     return this.formatDate(now, format)
   }
 
+  unixToStr (unix) {
+    const data = new Date(unix)
+    return this.formatDate(data)
+  }
+
   formatDate (date, format) {
     if (!format) format = 'YYYY-MM-DD hh:mm:ss'
     format = format.replace(/YYYY/g, date.getFullYear())
