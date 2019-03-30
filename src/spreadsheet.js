@@ -6,8 +6,10 @@ export default class {
   constructor (id) {
     this.id = id
     this.target = SpreadsheetApp.openById(this.id)
-    this._memberHead = ['No.', '氏名', 'slack名', 'slackID', '雇用形態', '勤務形態', '備考']
-    this._timesheetHead = ['出勤時間', '退勤時間', '残業時間', '深夜時間', '休憩時間', '労働時間', '勤怠状況']
+    this._memberHead = ['No.', '氏名', '雇用形態', '勤務形態', 'slack名', 'slackID', '利用開始日', '利用終了日', '備考']
+    this._timesheetHead = ['出勤時間', '退勤時間', '休憩開始時間', '休憩終了時間', '残業時間', '深夜時間', '休憩時間', '労働時間', '勤怠状況']
+    this._logHead = ['time', 'user', 'action', 'posted']
+    this._numRowStartRecord = 26
   }
 
   create (sheetName) {
@@ -38,7 +40,7 @@ export default class {
   }
 
   initialSetting () {
-    this.target.renameActiveSheet('_メンバー')
+    this.target.renameActiveSheet('_member')
     const memberSheet = this.target.getActiveSheet()
     const header = this._memberHead
     const colorHeader = '#CCCCCC'
@@ -48,7 +50,7 @@ export default class {
   }
 
   addSlackId (slackUsers) {
-    const sheet = this.target.getSheetByName('_メンバー')
+    const sheet = this.target.getSheetByName('_member')
     const users = this.getAllData(sheet, this._memberHead, 1, 1)
     const slackNameIndex = this._memberHead.indexOf('slack名')
     const slackIdIndex = this._memberHead.indexOf('slackID')
@@ -96,6 +98,50 @@ export default class {
     const posted = 0
     const sheet = this.target.getSheetByName('_log')
     sheet.appendRow([time, user, task, posted])
+  }
+
+  postToEachUserSheet () {
+    const sheet = this.target.getSheetByName('_log')
+    const logs = this.getAllData(sheet, this._logHead, 1, 1)
+    const postedIndex = this._logHead.indexOf('posted')
+    const logToPost = logs.map(row => {
+      if (!row[postedIndex]) {
+        return this._logHead.reduce((acc, key, index) => {
+          acc[key] = row[index]
+          return acc
+        }, {})
+      }
+    })
+    logToPost.forEach(data => this.postUserSheet(data))
+  }
+
+  actionToColumn (action) {
+    switch (action) {
+      case 'begin':
+        return '出勤時間'
+      case 'finish':
+        return '退勤時間'
+      case 'breakStart':
+        return '休憩開始時間'
+      case 'breakFinish':
+        return '休憩終了終了時間'
+      default:
+        return 'error'
+    }
+  }
+
+  postUserSheet (data) {
+    Logger.log(data)
+    const sheet = this.target.getSheetByName(data.user)
+    const startDate = sheet.getRange('G2').getValue()
+    const updateData = date.formatDate(data.time, 'YYYY/MM/DD')
+    const dayDiff = date.diff(startDate, updateData)
+    const row = this._numRowStartRecord + dayDiff
+    const numColumns = this._timesheetHead.length
+    const sheetData = sheet.getRange(row, 2, 1, numColumns).getValues()
+    const indexToUpdate = this._timesheetHead.indexOf(this.actionToColumn(data.action))
+    sheetData[0][indexToUpdate] = date.formatDate(data.time, 'hh:mm')
+    return sheet.getRange(row, 2, 1, numColumns).setValues(sheetData)
   }
 
   transposeArray (matrix) {

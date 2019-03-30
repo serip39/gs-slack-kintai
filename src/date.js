@@ -15,11 +15,6 @@ export default class {
     return this.formatDate(now, format)
   }
 
-  unixToStr (unix) {
-    const data = new Date(unix)
-    return this.formatDate(data)
-  }
-
   formatDate (date, format) {
     if (!format) format = 'YYYY-MM-DD hh:mm:ss'
     format = format.replace(/YYYY/g, date.getFullYear())
@@ -29,5 +24,13 @@ export default class {
     format = format.replace(/mm/g, ('0' + date.getMinutes()).slice(-2))
     format = format.replace(/ss/g, ('0' + date.getSeconds()).slice(-2))
     return format
+  }
+
+  diff (date1Str, date2Str) {
+    const date1 = new Date(date1Str)
+    const date2 = new Date(date2Str)
+    const msDiff = date2.getTime() - date1.getTime()
+    // 1day = 24h × 60min × 60s × 1000ms
+    return Math.floor(msDiff / (1000 * 60 * 60 * 24))
   }
 }

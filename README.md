@@ -30,7 +30,7 @@ In Google Apps Script, it must be top level function declaration that entry poin
 |:-----|:-----|
 | time | POSTされた時間 |
 | user | POSTしたユーザー情報 |
-| task | 出勤/退勤/休憩開始/休憩終了 |
+| action | 出勤/退勤/休憩開始/休憩終了 |
 | posted | 1:転記済み / 0:未転記 |
 
 
@@ -52,9 +52,10 @@ In Google Apps Script, it must be top level function declaration that entry poin
 |:-----|:-----|
 | time | POSTされた時間 |
 | user | POSTしたユーザー情報 |
-| task | 休暇申請/遅刻申請/早退申請/残業申請 |
+| action | 休暇申請/遅刻申請/早退申請/残業申請 |
 | from | いつから / 遅刻の場合はここに時刻記載（早退の場合、空欄） |
 | to | いつまで / 早退の場合はここに時刻記載（遅刻の場合、空欄） |
+| text | 理由などを明記 |
 | boss | 承認者 |
 | approval | 1:許可 / 0:却下 |
 | posted | 1:転記済み / 0:未転記 |
