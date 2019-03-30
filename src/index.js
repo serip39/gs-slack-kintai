@@ -1,6 +1,7 @@
 import Slack from './slack'
 import GASPropertiesService from './gasPropertiesService'
 import Spreadsheet from './spreadsheet'
+import { setReplyMsg } from './message'
 
 const globalSettings = new GASPropertiesService()
 const spreadsheet = new Spreadsheet(globalSettings.get('spreadsheet'))
@@ -15,8 +16,10 @@ global.initialSetting = () => {
 }
 
 global.test = () => {
-  const slackUsers = slack.getUserList()
-  spreadsheet.addSlackId(slackUsers)
+  const test = setReplyMsg('おはよう')
+  Logger.log(test)
+  // const slackUsers = slack.getUserList()
+  // spreadsheet.addSlackId(slackUsers)
 }
 
 global.doPost = (e) => {
@@ -26,10 +29,10 @@ global.doPost = (e) => {
     if (payload.type === 'interactive_message') {
       spreadsheet.createlog(payload)
       let message = ''
-      if (payload.actions[0].value === 'yes') {
-        message = `おはようございます！　出勤時間：<!date^${Math.round(payload.action_ts)}^{date_num} {time}| 1989-01-01 00:00 AM PST>` // eslint-disable-line
+      if (payload.actions[0].value === 'true') {
+        message = `おはようございます！（出勤時間：<!date^${Math.round(payload.action_ts)}^{date_num} {time}| 1989-01-01 00:00 AM PST>）`
       }
-      if (payload.actions[0].value === 'cancel') {
+      if (payload.actions[0].value === 'false') {
         message = '打刻をキャンセルしました'
       }
       return ContentService.createTextOutput(message)
@@ -43,6 +46,10 @@ global.doPost = (e) => {
     slack.verificationForEventAPI(params)
   } else if (params.type === 'event_callback') {
     if (params.event.bot_id) return
-    slack.postEphemeral(params)
+    const channel = params.event.channel
+    const user = params.event.user
+    const text = ''
+    const attachments = setReplyMsg(params.event.text)
+    slack.postEphemeral(channel, text, user, attachments)
   }
 }

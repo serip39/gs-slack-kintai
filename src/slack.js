@@ -15,32 +15,6 @@ export default class {
     })
   }
 
-  checkIn (time) {
-    return [
-      {
-        text: `出勤しますか？`,
-        callback_id: 'check-in',
-        color: '#3AA3E3',
-        attachment_type: 'default',
-        actions: [
-          {
-            name: 'checkIn',
-            text: '　　　出　　勤　　　',
-            style: 'primary',
-            type: 'button',
-            value: 'yes'
-          },
-          {
-            name: 'checkIn',
-            text: 'キャンセル',
-            type: 'button',
-            value: 'cancel'
-          }
-        ]
-      }
-    ]
-  }
-
   postMessage (params) {
     const url = 'https://slack.com/api/chat.postMessage'
     let data = {
@@ -59,13 +33,13 @@ export default class {
     UrlFetchApp.fetch(url, options)
   }
 
-  postEphemeral (params) {
+  postEphemeral (channel, text, user, attachments) {
     const url = 'https://slack.com/api/chat.postEphemeral'
-    let data = {
-      channel: params.event.channel,
-      text: '',
-      user: params.event.user,
-      attachments: this.checkIn(params.event_time)
+    const data = {
+      channel,
+      text,
+      user,
+      attachments
     }
     const options = {
       'method': 'POST',
