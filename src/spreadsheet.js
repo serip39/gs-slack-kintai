@@ -1,21 +1,21 @@
-import Date from './date'
-
-const date = new Date()
+import moment from './moment'
 
 export default class {
-  constructor (id) {
-    this.id = id
-    this.target = SpreadsheetApp.openById(this.id)
-    this._memberHead = ['No.', '氏名', '雇用形態', '勤務形態', 'slack名', 'slackId', '利用開始日', '利用終了日', '備考']
+  constructor () {
+    this.target = SpreadsheetApp.getActiveSpreadsheet()
+    this._memberHead = ['id', 'name', 'employment', 'workStyle', 'email', 'slackName', 'slackId', 'startedAt', 'endedAt', 'memo']
     this._timesheetHead = ['date', 'clockIn', 'clockOut', 'breakStart', 'breakEnd', 'extra', 'lateNight', 'break', 'length', 'status']
     this._logHead = ['id', 'time', 'user', 'action', 'posted']
-    this._numRowStartRecord = 26
+    this._numRowStartRecord = 23
   }
 
-  create (sheetName) {
-    const spreadsheet = SpreadsheetApp.create(sheetName)
-    this.id = spreadsheet.getId()
-    return this.id
+  // Array.prototype.find() が動かないので自作
+  findData (arrObj, key, val) {
+    for (let i = 0; i < arrObj.length; i++) {
+      if (arrObj[i][key] === val) {
+        return arrObj[i]
+      }
+    }
   }
 
   createTableHeaderColumns (sheet, array, startRow, startCol, color) {
@@ -36,7 +36,8 @@ export default class {
     const lastRow = sheet.getLastRow()
     const numRow = lastRow - startRow
     const numCol = header.length
-    return sheet.getRange(startRow + 1, startCol, numRow, numCol).getValues()
+    const matrix = sheet.getRange(startRow + 1, startCol, numRow, numCol).getValues()
+    return this.matrixToArrObj(matrix, header)
   }
 
   getRowData (sheet, header, numRow) {
@@ -47,8 +48,8 @@ export default class {
 
   setRowData (sheet, header, numRow, obj) {
     const numCol = header.length
-    const row = Object.keys(obj).map(key => obj[key])
-    return sheet.getRange(numRow, 1, 1, numCol).setValues([ row ])
+    const data = Object.keys(obj).map(key => obj[key])
+    return sheet.getRange(numRow, 1, 1, numCol).setValues([ data ])
   }
 
   initialSetting () {
@@ -97,58 +98,50 @@ export default class {
   }
 
   createCalender (timeSheet) {
-    const calenderArray = date.createCalender('2019-02-01', '2019-04-30')
+    const calenderArray = moment.createCalender('2019-02-01', '2019-04-30')
     const numRow = calenderArray.length
     const numCol = calenderArray[0].length
     timeSheet.getRange(26, 1, numRow, numCol).setValues(calenderArray)
   }
 
   addLogForTimestamp (payload) {
-    const time = date.getNow()
+    const id = '=ROW() - 1'
+    const time = payload.time
     const user = payload.user.name
     const task = payload.callback_id
     const posted = 0
     const sheet = this.target.getSheetByName('_log')
-    sheet.appendRow([time, user, task, posted])
+    sheet.appendRow([id, time, user, task, posted])
   }
 
-  postToEachUserSheet () {
+  getLogsToCopy () {
     const sheet = this.target.getSheetByName('_log')
     const logs = this.getAllData(sheet, this._logHead, 1, 1)
-    const data = this.matrixToArrObj(logs, this._logHead)
-    const logToPost = data.filter(data => !data.posted)
-    logToPost.forEach(data => {
-      this.postUserSheet(data)
-      data.posted = 1
-      this.setRowData(sheet, this._logHead, data.id + 1, data)
-    })
+    return logs.filter(data => !data.posted)
   }
 
-  actionToColumn (action) {
-    switch (action) {
-      case 'begin':
-        return '出勤時間'
-      case 'finish':
-        return '退勤時間'
-      case 'breakStart':
-        return '休憩開始時間'
-      case 'breakFinish':
-        return '休憩終了終了時間'
-      default:
-        return 'error'
+  getUserData (userName) {
+    const sheet = this.target.getSheetByName('_member')
+    const users = this.getAllData(sheet, this._memberHead, 1, 1)
+    return this.findData(users, 'slackName', userName)
+  }
+
+  copyLogToUserSheet (data, numRow) {
+    try {
+      const sheet = this.target.getSheetByName(data.user)
+      numRow += this._numRowStartRecord
+      const numCol = this._timesheetHead.indexOf(data.action) + 1
+      sheet.getRange(numRow, numCol).setValue(data.time)
+      return true
+    } catch (err) {
+      return false
     }
   }
 
-  postUserSheet (data) {
-    Logger.log(data)
-    const sheet = this.target.getSheetByName(data.user)
-    const startDate = sheet.getRange('G2').getValue()
-    const updateData = date.formatDate(data.time, 'YYYY/MM/DD')
-    const dayDiff = date.diff(startDate, updateData)
-    const row = this._numRowStartRecord + dayDiff
-    const rowData = this.getRowData(sheet, this._timesheetHead, row)
-    rowData[data.action] = date.formatDate(data.time, 'hh:mm')
-    return this.setRowData(sheet, this._timesheetHead, row, rowData)
+  updateLog (numRow) {
+    const sheet = this.target.getSheetByName('_log')
+    const numCol = this._logHead.indexOf('posted') + 1
+    sheet.getRange(numRow, numCol).setValue(1)
   }
 
   matrixToArrObj (matrix, header) {
@@ -171,12 +164,8 @@ export default class {
     return matrix[0].map((col, i) => matrix.map(row => row[i]))
   }
 
-  createlog (output) {
-    if (typeof output === 'object') {
-      output = JSON.stringify(output)
-    }
+  log (data) {
     const sheet = this.target.getSheetByName('_dev')
-    const now = date.getNow()
-    sheet.appendRow([now, output])
+    sheet.appendRow(data)
   }
 }

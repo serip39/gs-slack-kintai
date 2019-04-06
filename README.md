@@ -20,6 +20,14 @@ In Google Apps Script, it must be top level function declaration that entry poin
 - 表示はhtmlで表示する
 
 
+[Simple Triggers](https://developers.google.com/apps-script/guides/triggers/)
+
+```
+Script executions and API requests do not cause triggers to run. For example, calling Range.setValue() to edit a cell does not cause the spreadsheet's onEdit trigger to run.
+```
+
+上記にあるように、GASで編集しても、onEdit()が動かないので、時間トリガーでlogの変更状況を確認しつつ、変更があれば更新をかけるようにする。
+
 #### log（timestamp/打刻用）
 - 出勤 start
 - 退勤 end
@@ -44,9 +52,9 @@ In Google Apps Script, it must be top level function declaration that entry poin
   - 慶弔休暇 special
   - 欠勤 absence
 
-- 遅刻申請 late
-- 早退申請 early
-- 残業申請 overtime
+- 遅刻申請 lateIn
+- 早退申請 earlyOut
+- 残業申請 overWork
 
 | parameter | memo |
 |:-----|:-----|

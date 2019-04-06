@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "login": "./node_modules/.bin/clasp login",
-    "create_gas": "./node_modules/.bin/clasp create --title gs-slack-kintai --type webapp --rootDir ./dist && cp -f ./setting/appsscript.json ./dist/",
+    "create_gas": "./node_modules/.bin/clasp create --title Kintai-management --type sheets --rootDir ./dist && cp -f ./setting/appsscript.json ./dist/",
     "open_gas": "./node_modules/.bin/clasp open",
     "pull_gas": "./node_modules/.bin/clasp pull",
     "push_gas": "./node_modules/.bin/clasp push",
