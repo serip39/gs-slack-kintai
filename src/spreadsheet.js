@@ -6,9 +6,9 @@ export default class {
   constructor (id) {
     this.id = id
     this.target = SpreadsheetApp.openById(this.id)
-    this._memberHead = ['No.', '氏名', '雇用形態', '勤務形態', 'slack名', 'slackID', '利用開始日', '利用終了日', '備考']
-    this._timesheetHead = ['出勤時間', '退勤時間', '休憩開始時間', '休憩終了時間', '残業時間', '深夜時間', '休憩時間', '労働時間', '勤怠状況']
-    this._logHead = ['time', 'user', 'action', 'posted']
+    this._memberHead = ['No.', '氏名', '雇用形態', '勤務形態', 'slack名', 'slackId', '利用開始日', '利用終了日', '備考']
+    this._timesheetHead = ['date', 'clockIn', 'clockOut', 'breakStart', 'breakEnd', 'extra', 'lateNight', 'break', 'length', 'status']
+    this._logHead = ['id', 'time', 'user', 'action', 'posted']
     this._numRowStartRecord = 26
   }
 
@@ -39,6 +39,18 @@ export default class {
     return sheet.getRange(startRow + 1, startCol, numRow, numCol).getValues()
   }
 
+  getRowData (sheet, header, numRow) {
+    const numCol = header.length
+    const multiArr = sheet.getRange(numRow, 1, 1, numCol).getValues()
+    return this.matrixToArrObj(multiArr, header)[0]
+  }
+
+  setRowData (sheet, header, numRow, obj) {
+    const numCol = header.length
+    const row = Object.keys(obj).map(key => obj[key])
+    return sheet.getRange(numRow, 1, 1, numCol).setValues([ row ])
+  }
+
   initialSetting () {
     this.target.renameActiveSheet('_member')
     const memberSheet = this.target.getActiveSheet()
@@ -53,7 +65,7 @@ export default class {
     const sheet = this.target.getSheetByName('_member')
     const users = this.getAllData(sheet, this._memberHead, 1, 1)
     const slackNameIndex = this._memberHead.indexOf('slack名')
-    const slackIdIndex = this._memberHead.indexOf('slackID')
+    const slackIdIndex = this._memberHead.indexOf('slackId')
     let shouldUpdated = false
     const updatedUsers = users.map(user => {
       if (!user[slackIdIndex]) {
@@ -80,7 +92,7 @@ export default class {
     const timeSheet = this.target.insertSheet(username)
     const header = this._timesheetHead
     const colorHeader = '#CCCCCC'
-    this.createTableHeaderColumns(timeSheet, header, 25, 2, colorHeader)
+    this.createTableHeaderColumns(timeSheet, header, 25, 1, colorHeader)
     this.createCalender(timeSheet)
   }
 
@@ -103,16 +115,13 @@ export default class {
   postToEachUserSheet () {
     const sheet = this.target.getSheetByName('_log')
     const logs = this.getAllData(sheet, this._logHead, 1, 1)
-    const postedIndex = this._logHead.indexOf('posted')
-    const logToPost = logs.map(row => {
-      if (!row[postedIndex]) {
-        return this._logHead.reduce((acc, key, index) => {
-          acc[key] = row[index]
-          return acc
-        }, {})
-      }
+    const data = this.matrixToArrObj(logs, this._logHead)
+    const logToPost = data.filter(data => !data.posted)
+    logToPost.forEach(data => {
+      this.postUserSheet(data)
+      data.posted = 1
+      this.setRowData(sheet, this._logHead, data.id + 1, data)
     })
-    logToPost.forEach(data => this.postUserSheet(data))
   }
 
   actionToColumn (action) {
@@ -137,11 +146,25 @@ export default class {
     const updateData = date.formatDate(data.time, 'YYYY/MM/DD')
     const dayDiff = date.diff(startDate, updateData)
     const row = this._numRowStartRecord + dayDiff
-    const numColumns = this._timesheetHead.length
-    const sheetData = sheet.getRange(row, 2, 1, numColumns).getValues()
-    const indexToUpdate = this._timesheetHead.indexOf(this.actionToColumn(data.action))
-    sheetData[0][indexToUpdate] = date.formatDate(data.time, 'hh:mm')
-    return sheet.getRange(row, 2, 1, numColumns).setValues(sheetData)
+    const rowData = this.getRowData(sheet, this._timesheetHead, row)
+    rowData[data.action] = date.formatDate(data.time, 'hh:mm')
+    return this.setRowData(sheet, this._timesheetHead, row, rowData)
+  }
+
+  matrixToArrObj (matrix, header) {
+    if (matrix[0].length !== header.length) return false
+    return matrix.map(row => {
+      return header.reduce((acc, key, index) => {
+        acc[key] = row[index]
+        return acc
+      }, {})
+    })
+  }
+
+  arrObjToMatrix (arrObj) {
+    return arrObj.map(rowObj => {
+      return Object.keys(rowObj).map(key => rowObj[key])
+    })
   }
 
   transposeArray (matrix) {

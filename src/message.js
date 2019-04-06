@@ -1,19 +1,19 @@
 const commands = {
-  begin: /(おは|おっは|hello|morning|出勤)/,
-  finish: /(おつ|さらば|お先|お疲|帰|乙|night|退勤)/,
+  clockIn: /(おは|おっは|hello|morning|出勤)/,
+  clockOut: /(おつ|さらば|お先|お疲|帰|乙|night|退勤)/,
   breakStart: /(外出|ランチ|離脱|休憩(?!終))/,
-  breakFinish: /(戻り|復帰|休憩終)/
+  breakEnd: /(戻り|復帰|休憩終)/
 }
 
 const strJP = (str) => {
   switch (str) {
-    case 'begin':
+    case 'clockIn':
       return '出勤'
-    case 'finish':
+    case 'clockOut':
       return '退勤'
     case 'breakStart':
       return '休憩開始'
-    case 'breakFinish':
+    case 'breakEnd':
       return '休憩終了'
     default:
       return 'error'
@@ -22,13 +22,13 @@ const strJP = (str) => {
 
 const greeting = (action) => {
   switch (action) {
-    case 'begin':
+    case 'clockIn':
       return 'おはようございます！'
-    case 'finish':
+    case 'clockOut':
       return 'お疲れ様でした！'
     case 'breakStart':
       return 'ごゆっくり〜！'
-    case 'breakFinish':
+    case 'breakEnd':
       return '気持ちを切り替えていきましょ！'
     default:
       return 'error'

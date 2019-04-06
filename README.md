@@ -21,10 +21,10 @@ In Google Apps Script, it must be top level function declaration that entry poin
 
 
 #### log（timestamp/打刻用）
-- 出勤 begin
-- 退勤 finish
+- 出勤 start
+- 退勤 end
 - 休憩開始 breat-start
-- 休憩終了 break-finish
+- 休憩終了 break-end
 
 | parameter | memo |
 |:-----|:-----|
