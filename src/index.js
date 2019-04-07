@@ -5,7 +5,7 @@ import { setMsgForConfirmation, setInteractiveResponseMsg } from './message'
 
 const spreadsheet = new Spreadsheet()
 const slack = new Slack('test')
-const moment = new Moment('09:30', '18:30', '22:00')
+const moment = new Moment()
 
 global.initialSetting = () => {
   spreadsheet.createTimesheet('seri')
@@ -53,9 +53,13 @@ const copyLogIfNeeded = () => {
     let user = spreadsheet.getUserData(log.user)
     let startDate = user.startedAt
     let numRow = moment.diff(startDate, log.time, 'days')
-    log.time = moment.format(log.time, 'hh:mm')
     if (spreadsheet.copyLogToUserSheet(log, numRow)) {
       spreadsheet.updateLog(log.id + 1)
+    }
+    if (log.action === 'clockOut') {
+      const rowData = spreadsheet.getRowDataInUserSheet(log.user, numRow)
+      const result = moment.calLength(rowData)
+      spreadsheet.updateRowDataInUserSheet(log.user, numRow, result)
     }
   })
 }

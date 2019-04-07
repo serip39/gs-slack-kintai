@@ -18,6 +18,15 @@ export default class {
     }
   }
 
+  getTimeSetting () {
+    const sheet = this.target.getSheetByName('_setting')
+    const numRow = sheet.getLastRow()
+    const numCol = sheet.getLastColumn()
+    const matrix = sheet.getRange(1, 1, numRow, numCol).getValues()
+    const header = matrix.shift()
+    return this.matrixToArrObj(matrix, header)[0]
+  }
+
   createTableHeaderColumns (sheet, array, startRow, startCol, color) {
     const columns = [array]
     const numRow = columns.length
@@ -136,6 +145,18 @@ export default class {
     } catch (err) {
       return false
     }
+  }
+
+  getRowDataInUserSheet (userName, numRow) {
+    const sheet = this.target.getSheetByName(userName)
+    numRow += this._numRowStartRecord
+    return this.getRowData(sheet, this._timesheetHead, numRow)
+  }
+
+  updateRowDataInUserSheet (userName, numRow, data) {
+    const sheet = this.target.getSheetByName(userName)
+    numRow += this._numRowStartRecord
+    return this.setRowData(sheet, this._timesheetHead, numRow, data)
   }
 
   updateLog (numRow) {

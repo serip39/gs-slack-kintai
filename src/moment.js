@@ -1,8 +1,8 @@
 export default class {
-  constructor (start, end, night) {
-    this.startTime = start
-    this.endTime = end
-    this.nightTime = night
+  constructor () {
+    this.startTime = '09:30'
+    this.endTime = '18:30'
+    this.nightTime = '22:00'
   }
 
   createCalender (start, end) {
@@ -52,19 +52,25 @@ export default class {
   }
 
   minToStr (min) {
-    const hour = min / 60
-    min %= 60
-    return hour + ':' + min
+    const h0 = ('0' + Math.floor(min / 60)).slice(-2)
+    const m0 = ('0' + (min % 60)).slice(-2)
+    return h0 + ':' + m0
+  }
+
+  setTime (date, time) {
+    let dt = new Date(date)
+    dt.setHours(Number(time.slice(0, 2)))
+    dt.setMinutes(Number(time.slice(-2)))
+    return dt
   }
 
   calLength (obj) {
-    const clockIn = [obj.date, obj.clockIn].join(' ')
-    const clockOut = [obj.date, obj.clockOut].join(' ')
-    const breakStart = [obj.date, obj.breakStart].join(' ')
-    const breakEnd = [obj.date, obj.breakEnd].join(' ')
+    const startTime = this.setTime(obj.date, this.startTime)
+    const endTime = this.setTime(obj.date, this.endTime)
+    const nightTime = this.setTime(obj.date, this.nightTime)
 
-    let lengthWork = this.diff(clockIn, clockOut, 'minutes')
-    let lengthBreak = this.diff(breakStart, breakEnd, 'minutes')
+    let lengthWork = this.diff(obj.clockIn, obj.clockOut, 'minutes')
+    let lengthBreak = this.diff(obj.breakStart, obj.breakEnd, 'minutes')
 
     // 休憩時間に関して
     // 6時間(360min)を超え、8時間(480min)以下の場合：45分
@@ -77,5 +83,21 @@ export default class {
 
     // 労働時間から休憩時間を引く
     lengthWork -= lengthBreak
+
+    let lengthExtraMorning = this.diff(obj.clockIn, startTime, 'minutes')
+    let lengthExtraEvening = this.diff(endTime, obj.clockOut, 'minutes')
+    lengthExtraMorning = lengthExtraMorning > 0 ? lengthExtraMorning : 0
+    lengthExtraEvening = lengthExtraEvening > 0 ? lengthExtraEvening : 0
+
+    let lengthNight = this.diff(nightTime, obj.clockOut, 'minutes')
+    lengthNight = lengthNight > 0 ? lengthNight : 0
+    lengthExtraEvening -= lengthNight
+
+    obj.extra = this.minToStr(lengthExtraMorning + lengthExtraEvening)
+    obj.lateNight = this.minToStr(lengthNight)
+    obj.break = this.minToStr(lengthBreak)
+    obj.length = this.minToStr(lengthWork)
+
+    return obj
   }
 }
