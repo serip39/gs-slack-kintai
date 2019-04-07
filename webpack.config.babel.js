@@ -1,4 +1,5 @@
 import GasPlugin from 'gas-webpack-plugin'
+import HtmlWebpackPlugin from 'html-webpack-plugin'
 import path from 'path'
 import Dotenv from 'dotenv-webpack'
 
@@ -31,6 +32,9 @@ export default {
   },
   plugins: [
     new GasPlugin(),
+    new HtmlWebpackPlugin({
+      template: './index.html'
+    }),
     new Dotenv({
       path: './.env'
     })

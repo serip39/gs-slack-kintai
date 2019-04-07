@@ -15,6 +15,11 @@ global.test = () => {
   copyLogIfNeeded()
 }
 
+global.doGet = () => {
+  const template = 'index'
+  return HtmlService.createTemplateFromFile(template).evaluate()
+}
+
 global.doPost = (e) => {
   // Interactive messagesの場合
   if (e.parameter.payload) {
