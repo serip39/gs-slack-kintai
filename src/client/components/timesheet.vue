@@ -1,4 +1,4 @@
-<template>
+<template lang="html">
   <section>
     <b-field grouped group-multiline>
       <div class="control">
