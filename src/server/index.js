@@ -16,8 +16,8 @@ global.test = () => {
 }
 
 global.doGet = () => {
-  const template = 'index'
-  return HtmlService.createTemplateFromFile(template).evaluate()
+  const template = HtmlService.createTemplateFromFile('index')
+  return template.evaluate().setTitle('勤怠管理')
 }
 
 global.doPost = (e) => {
