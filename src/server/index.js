@@ -24,17 +24,17 @@ global.doPost = (e) => {
   // Interactive messagesの場合
   if (e.parameter.payload) {
     const payload = JSON.parse(e.parameter.payload)
-    if (payload.type === 'interactive_message') {
-      createlog(payload)
+    createlog(payload)
+    if (payload.type === 'block_actions') {
       payload.time = moment.getNow()
       spreadsheet.addLogForTimestamp(payload)
-      return ContentService.createTextOutput(setInteractiveResponseMsg(payload))
+      return slack.post(payload.response_url, setInteractiveResponseMsg(payload))
     }
   }
 
   // EventAPIの場合
   const params = JSON.parse(e.postData.getDataAsString())
-  createlog('params')
+  createlog(params)
   if (params.type === 'url_verification') {
     return slack.verificationForEventAPI(params)
   } else if (params.type === 'event_callback') {
@@ -42,8 +42,9 @@ global.doPost = (e) => {
     const channel = params.event.channel
     const user = params.event.user
     const text = ''
-    const attachments = setMsgForConfirmation(params.event.text)
-    slack.postEphemeral(channel, text, user, attachments)
+    const blocks = setMsgForConfirmation(params.event.text)
+    createlog(blocks)
+    slack.postEphemeral(channel, text, user, blocks)
   }
 }
 

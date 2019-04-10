@@ -117,7 +117,7 @@ export default class {
     const id = '=ROW() - 1'
     const time = payload.time
     const user = payload.user.name
-    const task = payload.callback_id
+    const task = payload.actions[0].action_id
     const posted = 0
     const sheet = this.target.getSheetByName('_log')
     sheet.appendRow([id, time, user, task, posted])

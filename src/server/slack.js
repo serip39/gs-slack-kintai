@@ -33,13 +33,13 @@ export default class {
     UrlFetchApp.fetch(url, options)
   }
 
-  postEphemeral (channel, text, user, attachments) {
+  postEphemeral (channel, text, user, blocks) {
     const url = 'https://slack.com/api/chat.postEphemeral'
     const data = {
       channel,
       text,
       user,
-      attachments
+      blocks
     }
     const options = {
       'method': 'POST',
@@ -47,6 +47,18 @@ export default class {
       'headers': {
         'Authorization': 'Bearer ' + process.env.SLACK_BOT_OAUTH_TOKEN
       },
+      'payload': JSON.stringify(data)
+    }
+    UrlFetchApp.fetch(url, options)
+  }
+
+  post (url, text) {
+    const data = {
+      text
+    }
+    const options = {
+      'method': 'POST',
+      'contentType': 'application/json',
       'payload': JSON.stringify(data)
     }
     UrlFetchApp.fetch(url, options)

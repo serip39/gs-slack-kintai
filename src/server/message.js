@@ -39,23 +39,34 @@ const msgForConfirmation = (action) => {
   const textAction = strJP(action)
   return [
     {
-      text: `${textAction}しますか？`,
-      callback_id: `${action}`,
-      color: '#3AA3E3',
-      attachment_type: 'default',
-      actions: [
+      'type': 'section',
+      'text': {
+        'type': 'plain_text',
+        'text': `${textAction}しますか？`,
+        'emoji': true
+      }
+    },
+    {
+      'type': 'actions',
+      'elements': [
         {
-          name: `${action}`,
-          text: `${textAction}`,
-          style: 'primary',
-          type: 'button',
-          value: 'true'
+          'type': 'button',
+          'text': {
+            'type': 'plain_text',
+            'emoji': true,
+            'text': `${textAction}`
+          },
+          'action_id': `${action}`,
+          'style': 'primary'
         },
         {
-          name: `${action}`,
-          text: 'キャンセル',
-          type: 'button',
-          value: 'false'
+          'type': 'button',
+          'text': {
+            'type': 'plain_text',
+            'emoji': true,
+            'text': 'キャンセル'
+          },
+          'action_id': `cancel`
         }
       ]
     }
@@ -74,10 +85,11 @@ const setMsgForConfirmation = (msg) => {
 }
 
 const setInteractiveResponseMsg = (payload) => {
-  if (payload.actions[0].value === 'false') return '打刻をキャンセルしました'
-  const greet = greeting(payload.callback_id)
-  const time = strJP(payload.callback_id) + '時間'
-  return `${greet}（${time}：<!date^${Math.round(payload.action_ts)}^{date_num} {time}| 1989-01-01 00:00 AM PST>）`
+  const action = payload.actions[0].action_id
+  if (action === 'cancel') return '打刻をキャンセルしました'
+  const greet = greeting(action)
+  const time = strJP(action) + '時間'
+  return `${greet}（${time}：<!date^${Math.round(payload.actions[0].action_ts)}^{date_num} {time}| 1989-01-01 00:00 AM PST>）`
 }
 
 export { setMsgForConfirmation, setInteractiveResponseMsg }
