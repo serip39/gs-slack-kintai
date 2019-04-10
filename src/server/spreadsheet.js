@@ -165,6 +165,11 @@ export default class {
     sheet.getRange(numRow, numCol).setValue(1)
   }
 
+  getUserRecords (userName) {
+    const sheet = this.target.getSheetByName(userName)
+    return this.getAllData(sheet, this._timesheetHead, 22, 1)
+  }
+
   matrixToArrObj (matrix, header) {
     if (matrix[0].length !== header.length) return false
     return matrix.map(row => {

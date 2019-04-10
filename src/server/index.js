@@ -51,6 +51,19 @@ global.timeDrivenFunction = () => {
   // 定期的に実行する処理を追加する
 }
 
+global.getTimeRecords = (fromDate, toDate) => {
+  const data = spreadsheet.getUserRecords('seri')
+  const dataPeriod = data.filter(log => moment.isBetween(log.date, fromDate, toDate))
+  return dataPeriod.map(obj => {
+    Object.keys(obj).forEach(key => {
+      if (Object.prototype.toString.call(obj[key]) === '[object Date]') {
+        obj[key] = moment.formatStr(key, obj[key])
+      }
+    })
+    return obj
+  })
+}
+
 const copyLogIfNeeded = () => {
   const logsToCopy = spreadsheet.getLogsToCopy()
   if (!logsToCopy.length) return

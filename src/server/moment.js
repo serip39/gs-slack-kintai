@@ -18,18 +18,25 @@ export default class {
 
   getNow (format) {
     const now = new Date()
-    return this.format(now, format)
+    return this.format(now, 'YYYY-MM-DD hh:mm:ss')
   }
 
   format (date, format) {
-    if (!format) format = 'YYYY-MM-DD hh:mm:ss'
+    const weekday = ['日', '月', '火', '水', '木', '金', '土']
+    if (!format) format = 'YYYY-MM-DD(WW) hh:mm:ss'
     format = format.replace(/YYYY/g, date.getFullYear())
     format = format.replace(/MM/g, ('0' + (date.getMonth() + 1)).slice(-2))
     format = format.replace(/DD/g, ('0' + date.getDate()).slice(-2))
+    format = format.replace(/WW/g, weekday[date.getDay()])
     format = format.replace(/hh/g, ('0' + date.getHours()).slice(-2))
     format = format.replace(/mm/g, ('0' + date.getMinutes()).slice(-2))
     format = format.replace(/ss/g, ('0' + date.getSeconds()).slice(-2))
     return format
+  }
+
+  formatStr (key, date) {
+    if (key === 'date') return this.format(date, 'MM/DD(WW)')
+    return this.format(date, 'hh:mm')
   }
 
   diff (date1Str, date2Str, type) {
@@ -49,6 +56,13 @@ export default class {
       default:
         return 'error'
     }
+  }
+
+  isBetween (date, fromDate, toDate) {
+    const diffFrom = this.diff(fromDate, date, 'days')
+    const diffTo = this.diff(date, toDate, 'days')
+    if (diffFrom >= 0 && diffTo >= 0) return true
+    return false
   }
 
   minToStr (min) {
