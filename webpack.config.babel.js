@@ -2,6 +2,7 @@ import GasPlugin from 'gas-webpack-plugin'
 import HtmlWebpackPlugin from 'html-webpack-plugin'
 import VueLoaderPlugin from 'vue-loader/lib/plugin'
 import HtmlWebpackInlineSourcePlugin from 'html-webpack-inline-source-plugin'
+import CopyWebpackPlugin from 'copy-webpack-plugin'
 import path from 'path'
 import Dotenv from 'dotenv-webpack'
 
@@ -74,6 +75,14 @@ export default {
       },
     }),
     new HtmlWebpackInlineSourcePlugin(),
+    new CopyWebpackPlugin([
+        {
+          from: './css.html',
+          to: './',
+          toType: 'dir'
+        },
+      ]
+    ),
     new Dotenv({
       path: './.env'
     })
