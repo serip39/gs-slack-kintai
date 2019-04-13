@@ -28,6 +28,17 @@ Script executions and API requests do not cause triggers to run. For example, ca
 
 上記にあるように、GASで編集しても、onEdit()が動かないので、時間トリガーでlogの変更状況を確認しつつ、変更があれば更新をかけるようにする。
 
+```
+Your app should respond to the event request with an HTTP 2xx within three seconds. If it does not, we'll consider the event delivery attempt failed. After a failure, we'll retry three times, backing off exponentially.
+```
+
+slack EventAPIは3秒以内にresponseを返却しないと、失敗とみなされ、slackが3回まで再送する。
+1. the first retry will be sent nearly immediately
+2. the second retry will be attempted after 1 minute
+3. the third and final retry will be sent after 5 minutes
+→ GASのcache機能でIDを保存するようにする
+→ 同じIDがあった場合には、すぐにreturnするようにする
+
 #### log（timestamp/打刻用）
 - 出勤 start
 - 退勤 end

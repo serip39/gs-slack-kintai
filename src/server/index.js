@@ -16,8 +16,11 @@ global.test = () => {
 }
 
 global.doGet = () => {
-  const template = HtmlService.createTemplateFromFile('index')
-  return template.evaluate().setTitle('勤怠管理')
+  let htmlOutput = HtmlService.createTemplateFromFile('index').evaluate()
+  htmlOutput.setTitle('勤怠管理')
+  htmlOutput.addMetaTag('viewport', 'minimal-ui, width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no')
+  htmlOutput.addMetaTag('mobile-web-app-capable', 'yes')
+  return htmlOutput
 }
 
 global.doPost = (e) => {
@@ -26,10 +29,16 @@ global.doPost = (e) => {
     const payload = JSON.parse(e.parameter.payload)
     createlog(payload)
     if (payload.type === 'block_actions') {
-      payload.time = moment.getNow()
-      spreadsheet.addLogForTimestamp(payload)
-      return slack.post(payload.response_url, setInteractiveResponseMsg(payload))
+      const actionType = payload.actions[0].action_id
+      if (actionType === 'applyVacation') {
+        return ContentService.createTextOutput() // HTTP_200OK responce（3s以内にする必要あり）
+      } else {
+        payload.time = moment.getNow()
+        spreadsheet.addLogForTimestamp(payload)
+        slack.post(payload.response_url, setInteractiveResponseMsg(payload))
+      }
     }
+    return ContentService.createTextOutput() // HTTP_200OK responce（3s以内にする必要あり）
   }
 
   // EventAPIの場合
@@ -43,8 +52,8 @@ global.doPost = (e) => {
     const user = params.event.user
     const text = ''
     const blocks = setMsgForConfirmation(params.event.text)
-    createlog(blocks)
     slack.postEphemeral(channel, text, user, blocks)
+    return ContentService.createTextOutput() // HTTP_200OK responce（3s以内にする必要あり）
   }
 }
 
