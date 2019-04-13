@@ -16,6 +16,11 @@
           class="navbar-item">
           Timesheet
         </router-link>
+        <router-link
+          to="/apply/vacation"
+          class="navbar-item">
+          Vacation
+        </router-link>
       </div>
     </div>
   </nav>

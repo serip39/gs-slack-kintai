@@ -2,7 +2,6 @@ import Vue from 'vue'
 import App from './App'
 import router from './router'
 import Buefy from 'buefy'
-import 'buefy/dist/buefy.css'
 import { sync } from './router/gas-router-sync'
 
 Vue.config.productionTip = false

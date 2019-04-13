@@ -1,7 +1,8 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
-import Login from '@/components/login'
-import Timesheet from '@/components/timesheet'
+import Login from '@/pages/login'
+import Timesheet from '@/pages/timesheet'
+import Vacation from '@/pages/apply/vacation'
 
 Vue.use(VueRouter)
 
@@ -14,6 +15,10 @@ const routes = [
   {
     path: '/timesheet',
     component: Timesheet
+  },
+  {
+    path: '/apply/vacation',
+    component: Vacation
   }
 ]
 
