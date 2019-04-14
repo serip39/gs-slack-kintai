@@ -51,7 +51,7 @@ global.doPost = (e) => {
     const channel = params.event.channel
     const user = params.event.user
     const text = ''
-    const blocks = setMsgForConfirmation(params.event.text)
+    const blocks = setMsgForConfirmation(params.event.text, params.event.user)
     slack.postEphemeral(channel, text, user, blocks)
     return ContentService.createTextOutput() // HTTP_200OK responce（3s以内にする必要あり）
   }
@@ -74,11 +74,24 @@ global.getTimeRecords = (fromDate, toDate) => {
   })
 }
 
+global.getUserData = userId => {
+  createlog(userId)
+  const userData = spreadsheet.getUserData('slackId', userId)
+  createlog(userData)
+  Object.keys(userData).forEach(key => {
+    if (Object.prototype.toString.call(userData[key]) === '[object Date]') {
+      userData[key] = moment.formatStr(key, userData[key])
+    }
+  })
+  createlog(userData)
+  return userData
+}
+
 const copyLogIfNeeded = () => {
   const logsToCopy = spreadsheet.getLogsToCopy()
   if (!logsToCopy.length) return
   logsToCopy.forEach(log => {
-    let user = spreadsheet.getUserData(log.user)
+    let user = spreadsheet.getUserData('slackName', log.user)
     let startDate = user.startedAt
     let numRow = moment.diff(startDate, log.time, 'days')
     if (spreadsheet.copyLogToUserSheet(log, numRow)) {

@@ -7,7 +7,7 @@ import Vacation from '@/pages/apply/vacation'
 Vue.use(VueRouter)
 
 const routes = [
-  { path: '/', redirect: '/login' },
+  // { path: '/', redirect: '/login' },
   {
     path: '/login',
     component: Login

@@ -36,6 +36,7 @@ export default class {
 
   formatStr (key, date) {
     if (key === 'date') return this.format(date, 'MM/DD(WW)')
+    if (key === 'startedAt' || key === 'endedAt') return this.format(date, 'YYYY/MM/DD')
     return this.format(date, 'hh:mm')
   }
 

@@ -74,75 +74,27 @@ const msgForConfirmation = (action) => {
   ]
 }
 
-const msgApply = [
-  {
-    'type': 'section',
-    'text': {
-      'type': 'plain_text',
-      'text': '申請を開始しますか？',
-      'emoji': true
+const msgApply = (type, userId) => {
+  const url = process.env.APP_URL + '?userId=' + userId
+  return [
+    {
+      'type': 'section',
+      'text': {
+        'type': 'mrkdwn',
+        'text': `${type}申請は下記からお願いします。\n*<${url}|${type}申請>*`
+      }
     }
-  },
-  {
-    'type': 'section',
-    'text': {
-      'type': 'mrkdwn',
-      'text': '申請したい内容を選択してください'
-    },
-    'accessory': {
-      'action_id': 'apply',
-      'type': 'static_select',
-      'placeholder': {
-        'type': 'plain_text',
-        'text': '選択してください',
-        'emoji': true
-      },
-      'options': [
-        {
-          'text': {
-            'type': 'plain_text',
-            'text': '休暇申請',
-            'emoji': true
-          },
-          'value': 'vacation'
-        },
-        {
-          'text': {
-            'type': 'plain_text',
-            'text': '残業申請',
-            'emoji': true
-          },
-          'value': 'overwork'
-        },
-        {
-          'text': {
-            'type': 'plain_text',
-            'text': '遅刻申請',
-            'emoji': true
-          },
-          'value': 'lateIn'
-        },
-        {
-          'text': {
-            'type': 'plain_text',
-            'text': '早退申請',
-            'emoji': true
-          },
-          'value': 'earlyOut'
-        }
-      ]
-    }
-  }
-]
+  ]
+}
 
-const setMsgForConfirmation = (msg) => {
+const setMsgForConfirmation = (msg, userId) => {
   let userAction = ''
   Object.keys(commands).forEach(action => {
     if (msg.match(commands[action])) {
       userAction = action
     }
   })
-  if (userAction === 'applyVacation') return msgApply
+  if (userAction === 'applyVacation') return msgApply('休暇', userId)
   return msgForConfirmation(userAction)
 }
 

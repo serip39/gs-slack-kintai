@@ -1,17 +1,47 @@
 <script>
+import Login from '@/pages/login'
 import Nav from '@/components/nav'
 
 export default {
   name: 'app',
 
-  components: { Nav }
+  components: { Login, Nav },
+
+  data () {
+    return {
+      user: {},
+
+    }
+  },
+
+  computed: {
+    isLogIn () {
+      return !!this.user.name
+    }
+  },
+
+  methods: {
+    logIn (user) {
+      console.log('user', user)
+      this.user = user
+    }
+  }
 }
 </script>
 
 <template lang="html">
   <div id="app">
-    <Nav />
-    <router-view />
+    <Login
+      v-if="!isLogIn"
+      @log-in="logIn"
+    />
+    <template v-else>
+      <Nav />
+      <div>
+        {{ user.name }}
+      </div>
+      <router-view />
+    </template>
   </div>
 </template>
 

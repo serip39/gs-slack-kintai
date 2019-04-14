@@ -129,10 +129,11 @@ export default class {
     return logs.filter(data => !data.posted)
   }
 
-  getUserData (userName) {
+  getUserData (key, val) {
     const sheet = this.target.getSheetByName('_member')
     const users = this.getAllData(sheet, this._memberHead, 1, 1)
-    return this.findData(users, 'slackName', userName)
+    Logger.log(users)
+    return this.findData(users, key, val)
   }
 
   copyLogToUserSheet (data, numRow) {

@@ -47,12 +47,7 @@ export default {
         }
       ]
     }
-  },
-
-  beforeRouteEnter (to, from, next) {
-    console.log('test')
-    console.log(to)
-  },
+  }
 }
 </script>
 
