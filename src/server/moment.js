@@ -86,6 +86,7 @@ export default class {
 
     let lengthWork = this.diff(obj.clockIn, obj.clockOut, 'minutes')
     let lengthBreak = this.diff(obj.breakStart, obj.breakEnd, 'minutes')
+    if (!obj.breakStart || !obj.breakEnd) lengthBreak = 0
 
     // 休憩時間に関して
     // 6時間(360min)を超え、8時間(480min)以下の場合：45分

@@ -87,6 +87,57 @@ const msgApply = (type, userId) => {
   ]
 }
 
+const setApproveMsg = (user, result, date) => {
+  return [
+    {
+      'type': 'section',
+      'text': {
+        'type': 'plain_text',
+        'text': `勤怠承認依頼（${user.name}）`
+      }
+    },
+    {
+      'type': 'section',
+      'text': {
+        'type': 'mrkdwn',
+        'text': `本日の勤務状況（${date}）\n*出勤時間:* ${result.clockIn}\n*退勤時間:* ${result.clockOut}\n*休憩時間:* ${result.break}\n*残業時間:* ${result.extra}\n*深夜残業時間:* ${result.lateNight}\n*勤務時間:* ${result.length}\n`
+      }
+    },
+    // {
+    //   'type': 'section',
+    //   'text': {
+    //     'type': 'mrkdwn',
+    //     'text': `今月の勤務状況\n*残業時間:* ${user}\n*深夜残業時間:* ${user}\n*総勤務時間:* ${user}\n`
+    //   }
+    // },
+    {
+      'type': 'actions',
+      'elements': [
+        {
+          'type': 'button',
+          'text': {
+            'type': 'plain_text',
+            'emoji': true,
+            'text': 'Approve'
+          },
+          'action_id': `${user.slackName}_${date}_approve`,
+          'style': 'primary'
+        },
+        {
+          'type': 'button',
+          'text': {
+            'type': 'plain_text',
+            'emoji': true,
+            'text': 'Deny'
+          },
+          'action_id': `${user.slackName}_${date}_deny`,
+          'style': 'danger'
+        }
+      ]
+    }
+  ]
+}
+
 const setMsgForConfirmation = (msg, userId) => {
   let userAction = ''
   Object.keys(commands).forEach(action => {
@@ -106,4 +157,4 @@ const setInteractiveResponseMsg = (payload) => {
   return `${greet}（${time}：<!date^${Math.round(payload.actions[0].action_ts)}^{date_num} {time}| 1989-01-01 00:00 AM PST>）`
 }
 
-export { setMsgForConfirmation, setInteractiveResponseMsg }
+export { setMsgForConfirmation, setInteractiveResponseMsg, setApproveMsg }

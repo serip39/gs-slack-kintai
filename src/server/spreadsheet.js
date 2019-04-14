@@ -1,7 +1,7 @@
 export default class {
   constructor () {
     this.target = SpreadsheetApp.getActiveSpreadsheet()
-    this._memberHead = ['id', 'name', 'employment', 'department', 'workStyle', 'email', 'tel', 'slackName', 'slackId', 'startedAt', 'endedAt', 'memo']
+    this._memberHead = ['id', 'name', 'employment', 'department', 'workStyle', 'email', 'tel', 'slackName', 'slackId', 'slackIM', 'startedAt', 'endedAt', 'memo']
     this._timesheetHead = ['date', 'clockIn', 'clockOut', 'breakStart', 'breakEnd', 'extra', 'lateNight', 'break', 'length', 'status', 'approval']
     this._logHead = ['id', 'time', 'user', 'action', 'posted']
     this._numRowStartRecord = 23
@@ -94,7 +94,6 @@ export default class {
     })
 
     if (shouldUpdated) {
-      this.log(updatedUsers)
       const matrix = this.arrObjToMatrix(updatedUsers)
       this.setAllData(sheet, matrix, 1, 1)
     }
@@ -129,7 +128,6 @@ export default class {
   getUserData (key, val) {
     const sheet = this.target.getSheetByName('_member')
     const users = this.getAllData(sheet, this._memberHead, 1, 1)
-    Logger.log(users)
     return this.findData(users, key, val)
   }
 

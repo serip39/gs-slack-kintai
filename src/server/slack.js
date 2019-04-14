@@ -29,20 +29,20 @@ export default class {
     })
   }
 
-  postMessage (params) {
+  postMessage (channel, text, blocks) {
     const url = 'https://slack.com/api/chat.postMessage'
-    let data = {
-      channel: params.event.channel,
-      text: params.event.text,
-      attachments: this.checkIn()
+    const data = {
+      channel,
+      text,
+      blocks
     }
     const options = {
-      'method': 'POST',
-      'contentType': 'application/json',
-      'headers': {
-        'Authorization': 'Bearer ' + process.env.SLACK_BOT_OAUTH_TOKEN
+      method: 'post',
+      contentType: 'application/json',
+      headers: {
+        Authorization: 'Bearer ' + process.env.SLACK_BOT_OAUTH_TOKEN
       },
-      'payload': JSON.stringify(data)
+      payload: JSON.stringify(data)
     }
     UrlFetchApp.fetch(url, options)
   }
@@ -56,12 +56,12 @@ export default class {
       blocks
     }
     const options = {
-      'method': 'POST',
-      'contentType': 'application/json',
-      'headers': {
-        'Authorization': 'Bearer ' + process.env.SLACK_BOT_OAUTH_TOKEN
+      method: 'post',
+      contentType: 'application/json',
+      headers: {
+        Authorization: 'Bearer ' + process.env.SLACK_BOT_OAUTH_TOKEN
       },
-      'payload': JSON.stringify(data)
+      payload: JSON.stringify(data)
     }
     UrlFetchApp.fetch(url, options)
   }
@@ -71,9 +71,9 @@ export default class {
       text
     }
     const options = {
-      'method': 'POST',
-      'contentType': 'application/json',
-      'payload': JSON.stringify(data)
+      method: 'post',
+      contentType: 'application/json',
+      payload: JSON.stringify(data)
     }
     UrlFetchApp.fetch(url, options)
   }

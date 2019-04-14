@@ -1,7 +1,7 @@
 import Slack from './slack'
 import Spreadsheet from './spreadsheet'
 import Moment from './moment'
-import { setMsgForConfirmation, setInteractiveResponseMsg } from './message'
+import { setMsgForConfirmation, setInteractiveResponseMsg, setApproveMsg } from './message'
 
 const spreadsheet = new Spreadsheet()
 const slack = new Slack('test')
@@ -14,6 +14,7 @@ global.initialSetting = () => {
   // 各人のシート作成
   const calender = moment.createCalender('2019/01/01', '2019/12/31')
   const users = spreadsheet.getAllUsers()
+  createlog(users)
   for (let i = 0; i < users.length; i++) {
     spreadsheet.createTimesheet(users[i], calender)
   }
@@ -35,32 +36,29 @@ global.doPost = (e) => {
   // Interactive messagesの場合
   if (e.parameter.payload) {
     const payload = JSON.parse(e.parameter.payload)
-    createlog(payload)
     if (payload.type === 'block_actions') {
-      const actionType = payload.actions[0].action_id
-      if (actionType === 'applyVacation') {
-        return ContentService.createTextOutput() // HTTP_200OK responce（3s以内にする必要あり）
-      } else {
+      if (payload.actions[0].action_id !== 'cancel') {
         payload.time = moment.getNow()
         spreadsheet.addLogForTimestamp(payload)
-        slack.post(payload.response_url, setInteractiveResponseMsg(payload))
       }
+      slack.post(payload.response_url, setInteractiveResponseMsg(payload))
     }
     return ContentService.createTextOutput() // HTTP_200OK responce（3s以内にする必要あり）
   }
 
   // EventAPIの場合
   const params = JSON.parse(e.postData.getDataAsString())
-  createlog(params)
+  // createlog(params)
   if (params.type === 'url_verification') {
     return slack.verificationForEventAPI(params)
   } else if (params.type === 'event_callback') {
-    if (params.event.bot_id) return
-    const channel = params.event.channel
-    const user = params.event.user
-    const text = ''
-    const blocks = setMsgForConfirmation(params.event.text, params.event.user)
-    slack.postEphemeral(channel, text, user, blocks)
+    if (!params.event.bot_id) {
+      const channel = params.event.channel
+      const user = params.event.user
+      const text = ''
+      const blocks = setMsgForConfirmation(params.event.text, params.event.user)
+      slack.postEphemeral(channel, text, user, blocks)
+    }
     return ContentService.createTextOutput() // HTTP_200OK responce（3s以内にする必要あり）
   }
 }
@@ -83,15 +81,12 @@ global.getTimeRecords = (fromDate, toDate) => {
 }
 
 global.getUserData = userId => {
-  createlog(userId)
   const userData = spreadsheet.getUserData('slackId', userId)
-  createlog(userData)
   Object.keys(userData).forEach(key => {
     if (Object.prototype.toString.call(userData[key]) === '[object Date]') {
       userData[key] = moment.formatStr(key, userData[key])
     }
   })
-  createlog(userData)
   return userData
 }
 
@@ -109,6 +104,12 @@ const copyLogIfNeeded = () => {
       const rowData = spreadsheet.getRowDataInUserSheet(log.user, numRow)
       const result = moment.calLength(rowData)
       spreadsheet.updateRowDataInUserSheet(log.user, numRow, result)
+      result.clockIn = moment.formatStr('clockIn', result.clockIn)
+      result.clockOut = moment.formatStr('clockOut', result.clockOut)
+      const channel = 'DHACEP005'
+      const text = ''
+      const blocks = setApproveMsg(user, result, moment.format(result.date, 'YYYY-MM-DD'))
+      slack.postMessage(channel, text, blocks)
     }
   })
 }
