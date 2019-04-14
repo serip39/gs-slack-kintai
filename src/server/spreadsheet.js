@@ -1,10 +1,8 @@
-import moment from './moment'
-
 export default class {
   constructor () {
     this.target = SpreadsheetApp.getActiveSpreadsheet()
-    this._memberHead = ['id', 'name', 'employment', 'workStyle', 'email', 'slackName', 'slackId', 'startedAt', 'endedAt', 'memo']
-    this._timesheetHead = ['date', 'clockIn', 'clockOut', 'breakStart', 'breakEnd', 'extra', 'lateNight', 'break', 'length', 'status']
+    this._memberHead = ['id', 'name', 'employment', 'department', 'workStyle', 'email', 'tel', 'slackName', 'slackId', 'startedAt', 'endedAt', 'memo']
+    this._timesheetHead = ['date', 'clockIn', 'clockOut', 'breakStart', 'breakEnd', 'extra', 'lateNight', 'break', 'length', 'status', 'approval']
     this._logHead = ['id', 'time', 'user', 'action', 'posted']
     this._numRowStartRecord = 23
   }
@@ -71,19 +69,22 @@ export default class {
     memberSheet.setColumnWidth(header.length, 400)
   }
 
+  getAllUsers () {
+    const sheet = this.target.getSheetByName('_member')
+    const users = this.getAllData(sheet, this._memberHead, 1, 1)
+    return users.map(user => user.slackName)
+  }
+
   addSlackId (slackUsers) {
     const sheet = this.target.getSheetByName('_member')
     const users = this.getAllData(sheet, this._memberHead, 1, 1)
-    const slackNameIndex = this._memberHead.indexOf('slack名')
-    const slackIdIndex = this._memberHead.indexOf('slackId')
     let shouldUpdated = false
     const updatedUsers = users.map(user => {
-      if (!user[slackIdIndex]) {
-        Logger.log(user[slackNameIndex])
-        // Array.prototype.find() が GASのfind関数と競合して使えない
+      if (!user.slackId) {
         for (let i = 0; i < slackUsers.length; i++) {
-          if (slackUsers[i].name === user[slackNameIndex]) {
-            user[slackIdIndex] = slackUsers[i].id
+          if (slackUsers[i].email === user.email) {
+            user.slackId = slackUsers[i].id
+            user.tel = slackUsers[i].tel
             shouldUpdated = true
             break
           }
@@ -93,24 +94,20 @@ export default class {
     })
 
     if (shouldUpdated) {
-      this.createlog(updatedUsers)
-      this.setAllData(sheet, updatedUsers, 1, 1)
+      this.log(updatedUsers)
+      const matrix = this.arrObjToMatrix(updatedUsers)
+      this.setAllData(sheet, matrix, 1, 1)
     }
   }
 
-  createTimesheet (username) {
+  createTimesheet (username, calender) {
     const timeSheet = this.target.insertSheet(username)
     const header = this._timesheetHead
     const colorHeader = '#CCCCCC'
-    this.createTableHeaderColumns(timeSheet, header, 25, 1, colorHeader)
-    this.createCalender(timeSheet)
-  }
-
-  createCalender (timeSheet) {
-    const calenderArray = moment.createCalender('2019-02-01', '2019-04-30')
-    const numRow = calenderArray.length
-    const numCol = calenderArray[0].length
-    timeSheet.getRange(26, 1, numRow, numCol).setValues(calenderArray)
+    this.createTableHeaderColumns(timeSheet, header, 22, 1, colorHeader)
+    const numRow = calender.length
+    const numCol = calender[0].length
+    timeSheet.getRange(23, 1, numRow, numCol).setValues(calender)
   }
 
   addLogForTimestamp (payload) {

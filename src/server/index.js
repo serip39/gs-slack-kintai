@@ -8,7 +8,15 @@ const slack = new Slack('test')
 const moment = new Moment()
 
 global.initialSetting = () => {
-  spreadsheet.createTimesheet('seri')
+  // slackのID取得
+  const slackUsers = slack.getUserList()
+  spreadsheet.addSlackId(slackUsers)
+  // 各人のシート作成
+  const calender = moment.createCalender('2019/01/01', '2019/12/31')
+  const users = spreadsheet.getAllUsers()
+  for (let i = 0; i < users.length; i++) {
+    spreadsheet.createTimesheet(users[i], calender)
+  }
 }
 
 global.test = () => {

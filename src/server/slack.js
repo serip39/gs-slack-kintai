@@ -10,7 +10,21 @@ export default class {
     return data.members.map(user => {
       return {
         id: user.id,
-        name: user.name
+        name: user.name,
+        email: user.profile.email,
+        tel: user.profile.phone
+      }
+    })
+  }
+
+  getIMList () {
+    const url = 'https://slack.com/api/im.list?token=' + process.env.SLACK_BOT_OAUTH_TOKEN
+    const response = UrlFetchApp.fetch(url)
+    const data = JSON.parse(response.getContentText())
+    return data.ims.map(ims => {
+      return {
+        id: ims.id,
+        user: ims.user
       }
     })
   }
