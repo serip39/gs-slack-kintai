@@ -1,3 +1,16 @@
+<script>
+export default {
+  name: 'nav',
+
+  props: {
+    user: {
+      type: Object,
+      default: () => ({})
+    }
+  }
+}
+</script>
+
 <template lang="html">
   <nav class="navbar is-info" role="navigation" aria-label="main navigation">
     <div class="navbar-brand">

@@ -1,8 +1,12 @@
 const commands = {
   clockIn: /(おは|おっは|hello|morning|出勤)/,
   clockOut: /(おつ|さらば|お先|お疲|帰|乙|night|退勤)/,
-  breakStart: /(外出|ランチ|離脱|休憩(?!終))/,
-  breakEnd: /(戻り|復帰|休憩終)/,
+  breakStart: /(外出|ランチ|離席|離脱|休憩(?!終))/,
+  breakEnd: /(戻り|復帰|復活|休憩終)/
+}
+
+const commandsForIM = {
+  checkRecord: /(記録|詳細|過去|勤怠|record|確認)/,
   applyVacation: /(休暇|有休|代休).*(申請)/
 }
 
@@ -12,6 +16,21 @@ const strJP = (str) => {
       return '出勤'
     case 'clockOut':
       return '退勤'
+    case 'breakStart':
+      return '休憩開始'
+    case 'breakEnd':
+      return '休憩終了'
+    default:
+      return 'error'
+  }
+}
+
+const strJPForIM = (str) => {
+  switch (str) {
+    case 'checkRecord':
+      return '勤怠管理記録'
+    case 'applyVacation':
+      return '休暇申請'
     case 'breakStart':
       return '休憩開始'
     case 'breakEnd':
@@ -74,14 +93,15 @@ const msgForConfirmation = (action) => {
   ]
 }
 
-const msgApply = (type, userId) => {
+const msgURL = (action, userId) => {
+  const type = strJPForIM(action)
   const url = process.env.APP_URL + '?userId=' + userId
   return [
     {
       'type': 'section',
       'text': {
         'type': 'mrkdwn',
-        'text': `${type}申請は下記からお願いします。\n*<${url}|${type}申請>*`
+        'text': `${type}は *<${url}|こちら>*`
       }
     }
   ]
@@ -138,15 +158,16 @@ const setApproveMsg = (user, result, date) => {
   ]
 }
 
-const setMsgForConfirmation = (msg, userId) => {
+const setMsgToUser = (isIM, msg, userId) => {
   let userAction = ''
-  Object.keys(commands).forEach(action => {
-    if (msg.match(commands[action])) {
+  const rules = isIM ? commandsForIM : commands
+  Object.keys(rules).forEach(action => {
+    if (msg.match(rules[action])) {
       userAction = action
     }
   })
-  if (userAction === 'applyVacation') return msgApply('休暇', userId)
-  return msgForConfirmation(userAction)
+  if (!userAction) return null
+  return isIM ? msgURL(userAction, userId) : msgForConfirmation(userAction)
 }
 
 const setInteractiveResponseMsg = (payload) => {
@@ -157,4 +178,4 @@ const setInteractiveResponseMsg = (payload) => {
   return `${greet}（${time}：<!date^${Math.round(payload.actions[0].action_ts)}^{date_num} {time}| 1989-01-01 00:00 AM PST>）`
 }
 
-export { setMsgForConfirmation, setInteractiveResponseMsg, setApproveMsg }
+export { setMsgToUser, setInteractiveResponseMsg, setApproveMsg }

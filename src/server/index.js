@@ -1,7 +1,7 @@
 import Slack from './slack'
 import Spreadsheet from './spreadsheet'
 import Moment from './moment'
-import { setMsgForConfirmation, setInteractiveResponseMsg, setApproveMsg } from './message'
+import { setMsgToUser, setInteractiveResponseMsg, setApproveMsg } from './message'
 
 const spreadsheet = new Spreadsheet()
 const slack = new Slack('test')
@@ -53,11 +53,18 @@ global.doPost = (e) => {
     return slack.verificationForEventAPI(params)
   } else if (params.type === 'event_callback') {
     if (!params.event.bot_id) {
+      const isIM = params.event.channel_type === 'im'
       const channel = params.event.channel
-      const user = params.event.user
       const text = ''
-      const blocks = setMsgForConfirmation(params.event.text, params.event.user)
-      slack.postEphemeral(channel, text, user, blocks)
+      const user = params.event.user
+      const blocks = setMsgToUser(isIM, params.event.text, params.event.user)
+      // 何も条件に該当しなかった場合には、何もしない
+      if (!blocks) return ContentService.createTextOutput() // HTTP_200OK responce（3s以内にする必要あり）
+      if (isIM) {
+        slack.postMessage(channel, text, blocks)
+      } else {
+        slack.postEphemeral(channel, text, user, blocks)
+      }
     }
     return ContentService.createTextOutput() // HTTP_200OK responce（3s以内にする必要あり）
   }
@@ -67,8 +74,8 @@ global.timeDrivenFunction = () => {
   // 定期的に実行する処理を追加する
 }
 
-global.getTimeRecords = (fromDate, toDate) => {
-  const data = spreadsheet.getUserRecords('seri')
+global.getTimeRecords = (userName, fromDate, toDate) => {
+  const data = spreadsheet.getUserRecords(userName)
   const dataPeriod = data.filter(log => moment.isBetween(log.date, fromDate, toDate))
   return dataPeriod.map(obj => {
     Object.keys(obj).forEach(key => {

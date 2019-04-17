@@ -2,6 +2,13 @@
 export default {
   name: 'applyVacation',
 
+  props: {
+    user: {
+      type: Object,
+      default: () => ({})
+    }
+  },
+
   data () {
     return {
       type: '',
