@@ -1,6 +1,7 @@
 .clasp.json
 node_modules
 /dist
+/dist_dev
 
 .DS_Store
 

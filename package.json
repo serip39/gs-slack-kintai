@@ -9,9 +9,10 @@
     "open_gas": "./node_modules/.bin/clasp open",
     "pull_gas": "./node_modules/.bin/clasp pull",
     "push_gas": "./node_modules/.bin/clasp push",
-    "build": "./node_modules/.bin/webpack --mode production",
+    "build": "./node_modules/.bin/webpack --config webpack.prod.config.babel.js",
     "deploy": "npm run build && npm run push_gas",
-    "lint": "./node_modules/.bin/eslint ./src"
+    "lint": "./node_modules/.bin/eslint ./src",
+    "serve": "webpack-dev-server"
   },
   "repository": {
     "type": "git",
@@ -54,7 +55,8 @@
     "vue-loader": "^15.7.0",
     "vue-template-compiler": "^2.6.10",
     "webpack": "^4.29.1",
-    "webpack-cli": "^3.2.3"
+    "webpack-cli": "^3.2.3",
+    "webpack-dev-server": "^3.3.1"
   },
   "dependencies": {
     "vue": "^2.6.10",
