@@ -110,6 +110,10 @@ const copyLogIfNeeded = () => {
     let user = spreadsheet.getUserData('slackName', log.user)
     let startDate = user.startedAt
     let numRow = moment.diff(startDate, log.time, 'days')
+    // clockIn以外は日付を超えたとしても、clockInした日付で記録する
+    while (log.action !== 'clockIn' && !spreadsheet.hasClockIn(log.user, numRow)) {
+      numRow--
+    }
     if (spreadsheet.copyLogToUserSheet(log, numRow)) {
       spreadsheet.updateLog(log.id + 1)
     }
@@ -133,4 +137,20 @@ const createlog = (output) => {
   }
   const now = moment.getNow()
   spreadsheet.log([ now, output ])
+}
+
+// データ移行用の関数
+global.copyOldDate = () => {
+  // const users = spreadsheet.getAllUsers()
+  const users = ['hashimoto', 'kawase', 'tamaki']
+  users.forEach(userName => {
+    const oldSpread = SpreadsheetApp.openById(process.env.SPREAD_ID)
+    const sheet = oldSpread.getSheetByName(userName)
+    // 2019/1/1が196行目なのでそこからデータを取得する
+    const matrix = sheet.getRange(196, 1, 102, 3).getValues()
+    for (let i = 0; i < matrix.length; i++) {
+      if (matrix[i][1]) spreadsheet.addLogForOldTimestamp(matrix[i][1], userName, 'clockIn')
+      if (matrix[i][2]) spreadsheet.addLogForOldTimestamp(matrix[i][2], userName, 'clockOut')
+    }
+  })
 }

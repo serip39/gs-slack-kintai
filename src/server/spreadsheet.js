@@ -120,8 +120,16 @@ export default class {
     sheet.appendRow([id, time, user, task, posted])
   }
 
+  addLogForOldTimestamp (time, user, task) {
+    const id = '=ROW() - 1'
+    const posted = 0
+    const sheet = this.target.getSheetByName('_logOld')
+    sheet.appendRow([id, time, user, task, posted])
+  }
+
   getLogsToCopy () {
-    const sheet = this.target.getSheetByName('_log')
+    // const sheet = this.target.getSheetByName('_log')
+    const sheet = this.target.getSheetByName('_logOld')
     const logs = this.getAllData(sheet, this._logHead, 1, 1)
     return logs.filter(data => !data.posted)
   }
@@ -144,6 +152,13 @@ export default class {
     }
   }
 
+  hasClockIn (userName, numRow) {
+    const sheet = this.target.getSheetByName(userName)
+    numRow += this._numRowStartRecord
+    const numCol = this._timesheetHead.indexOf('clockIn') + 1
+    return sheet.getRange(numRow, numCol).getValue()
+  }
+
   getRowDataInUserSheet (userName, numRow) {
     const sheet = this.target.getSheetByName(userName)
     numRow += this._numRowStartRecord
@@ -157,7 +172,8 @@ export default class {
   }
 
   updateLog (numRow) {
-    const sheet = this.target.getSheetByName('_log')
+    // const sheet = this.target.getSheetByName('_log')
+    const sheet = this.target.getSheetByName('_logOld')
     const numCol = this._logHead.indexOf('posted') + 1
     sheet.getRange(numRow, numCol).setValue(1)
   }
