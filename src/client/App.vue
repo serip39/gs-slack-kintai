@@ -2,7 +2,7 @@
 import Login from '@/pages/login'
 import Nav from '@/components/nav'
 import Timesheet from '@/pages/timesheet'
-import Vacation from '@/pages/apply/vacation'
+import Apply from '@/pages/apply'
 
 export default {
   name: 'app',
@@ -11,7 +11,7 @@ export default {
     Login,
     Nav,
     Timesheet,
-    Vacation
+    Apply
   },
 
   data () {
@@ -34,7 +34,14 @@ export default {
     },
 
     goTo (pageName) {
-      this.page = pageName
+      if (this.page === pageName) {
+        this.page = ''
+        this.$nextTick(() => {
+          this.page = pageName
+        })
+      } else {
+        this.page = pageName
+      }
     }
   }
 }
@@ -53,8 +60,8 @@ export default {
       <Timesheet
         v-if="page === 'timesheet'"
         :user="user" />
-      <Vacation
-        v-else-if="page === 'applyVacation'"
+      <Apply
+        v-else-if="page === 'apply'"
         :user="user" />
     </template>
   </div>
@@ -107,4 +114,36 @@ html, body {
 .content table td, .content table th {
   padding: 0.5em 0.3em;
 }
+
+.navbar-item:hover {
+  cursor: pointer;
+}
+
+.input.num {
+  width: 25%;
+}
+
+.button {
+  width: 100%;
+}
+
+// .timepicker {
+//   .dropdown-content {
+//     padding: 0;
+//   }
+//   .dropdown-content {
+//     .control {
+//       font-size: 1rem;
+//       .select select {
+//         font-weight: normal;
+//       }
+//       &.is-colon {
+//         font-size: 1.25em;
+//       }
+//     }
+//     .select:not {
+//       height: inherit;
+//     }
+//   }
+// }
 </style>

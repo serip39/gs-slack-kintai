@@ -97,6 +97,10 @@ global.getUserData = userId => {
   return userData
 }
 
+global.postApply = data => {
+  createlog(data)
+}
+
 const copyLogIfNeeded = () => {
   const logsToCopy = spreadsheet.getLogsToCopy()
   if (!logsToCopy.length) return

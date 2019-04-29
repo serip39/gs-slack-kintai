@@ -2,23 +2,17 @@
 export default {
   name: 'applyVacation',
 
-  props: {
-    user: {
-      type: Object,
-      default: () => ({})
-    }
-  },
-
   data () {
     return {
-      type: '',
+      type: 'paid',
+      term: 1,
       fromDate: {
-        day: '',
-        time: ''
+        dt: new Date(),
+        time: 'all'
       },
       toDate: {
-        day: '',
-        time: ''
+        dt: new Date(),
+        time: 'afternoon'
       },
       reason: '',
       vacationTypes: [
@@ -54,86 +48,207 @@ export default {
         }
       ]
     }
+  },
+
+  computed: {
+    fromLabel () {
+      if (this.term > 1) return '休暇日（いつから）'
+      return '休暇日'
+    },
+
+    monthName () {
+      const months = []
+      for (let i = 1; i <= 12; i++) {
+        months.push(i + '月')
+      }
+      return months
+    },
+
+    selectableTime () {
+      if (this.term === 1) return this.times
+      this.setInitTime()
+      return this.times.filter(obj => obj.value !== 'all')
+    },
+
+    maxDate () {
+      const date = this.fromDate.dt
+      const increment = this.term - 1
+      return new Date(date.getFullYear(), date.getMonth(), date.getDate() + increment)
+    }
+  },
+
+  watch: {
+    fromDate: {
+      handler (obj) {
+        let diff = this.toDate.dt.getTime() - obj.dt.getTime()
+        if (diff < 0) {
+          this.toDate.dt = obj.dt
+        }
+      },
+      deep: true
+    }
+  },
+
+  methods: {
+    setInitTime () {
+      if (this.fromDate.time === 'all') this.fromDate.time = 'morning'
+    },
+
+    arrangeFromTime (obj) {
+      if (obj.time === 'all' || obj.time === 'morning') {
+        return new Date(obj.dt.setHours(9, 30, 0))
+      } else if (obj.time === 'afternoon') {
+        return new Date(obj.dt.setHours(13, 30, 0))
+      }
+    },
+
+    arrangeToTime (obj) {
+      if (obj.time === 'all' || obj.time === 'afternoon') {
+        return new Date(obj.dt.setHours(18, 30, 0))
+      } else if (obj.time === 'morning') {
+        return new Date(obj.dt.setHours(13, 30, 0))
+      }
+    },
+
+    toCheck () {
+      const data =[
+        {
+          key: 'type',
+          desc: '休暇種類',
+          val: this.type
+        },{
+          key: 'term',
+          desc: '休暇日数',
+          val: this.term
+        },{
+          key: 'fromDate',
+          desc: 'いつから',
+          val: this.arrangeFromTime(this.fromDate)
+        },{
+          key: 'toDate',
+          desc: 'いつまで',
+          val: this.arrangeToTime(this.toDate)
+        },{
+          key: 'reason',
+          desc: '理由',
+          val: this.reason
+        }
+      ]
+      this.$emit('copy', data)
+      this.$emit('toggle-checked')
+    },
+
+    cancel () {
+      this.$emit('init')
+    }
   }
 }
 </script>
 
 
 <template lang="html">
-  <section class="section">
-    <div class="container">
-      <h1 class="title">休暇申請</h1>
-      <div class="content">
-        <b-field
-          label="休暇の種類を選択して下さい">
-          <b-select
-            v-model="type"
-            placeholder="選択してください"
-            expanded>
-            <option
-              v-for="type in vacationTypes"
-              :key="type.value"
-              :value="type.value">
-              {{ type.label }}
-            </option>
-          </b-select>
-        </b-field>
-      </div>
-      <div class="content">
-        <div class="block">
-          <b-field label="休暇日（いつから）">
-            <b-datepicker
-              v-model="fromDate.day"
-              placeholder="日付を選択してください"
-              icon="calendar-today">
-            </b-datepicker>
-          </b-field>
-        </div>
-        <div class="block">
-          <b-radio
-            v-for="time in times"
-            :key="time.value"
-            v-model="fromDate.time"
-            :native-value="time.value">
-            {{ time.label }}
-          </b-radio>
-        </div>
-      </div>
-      <div class="content">
-        <div class="block">
-          <b-field label="休暇日（いつまで）">
-            <b-datepicker
-              v-model="toDate.day"
-              placeholder="日付を選択してください"
-              icon="calendar-today">
-            </b-datepicker>
-          </b-field>
-        </div>
-        <div class="block">
-          <b-radio
-            v-for="time in times"
-            :key="time.value"
-            v-model="toDate.time"
-            :native-value="time.value">
-            {{ time.label }}
-          </b-radio>
-        </div>
-      </div>
-      <div class="content">
-        <b-field label="休暇理由">
-          <b-input
-            v-model="reason"
-            maxlength="200"
-            type="textarea"
-            placeholder="伝達事項などがある場合はここに記入してください。" />
-        </b-field>
-      </div>
+  <div class="vacation">
+    <b-field label="休暇の種類を選択して下さい">
+      <b-select
+        v-model="type"
+        placeholder="選択してください"
+        expanded>
+        <option
+          v-for="type in vacationTypes"
+          :key="type.value"
+          :value="type.value">
+          {{ type.label }}
+        </option>
+      </b-select>
+    </b-field>
+    <b-field
+      label="休暇日数">
+      <b-input
+        v-model.number="term"
+        type="number"
+        placeholder="数字を選択してください"
+        min="1"
+        class="term"
+        custom-class="num">
+      </b-input>
+    </b-field>
+    <b-field :label="fromLabel">
+      <b-datepicker
+        v-model="fromDate.dt"
+        placeholder="日付を選択してください"
+        icon="calendar-today"
+        :month-names="monthName"
+        :day-names="['日', '月', '火', '水', '木', '金', '土']"
+        :mobile-native="false" />
+    </b-field>
+    <div class="block">
+      <b-radio
+        v-for="time in selectableTime"
+        :key="time.value"
+        v-model="fromDate.time"
+        :native-value="time.value">
+        {{ time.label }}
+      </b-radio>
     </div>
-    <div>type:{{ type }}</div>
-    <div>fromDate:{{ fromDate.day }}</div>
-    <div>fromDate:{{ fromDate.time }}</div>
-    <div>toDate:{{ toDate.day }}</div>
-    <div>toDate:{{ toDate.time }}</div>
-    <div>reason:{{ reason }}</div>
-  </section>
+    <template v-if="term > 1">
+      <b-field label="休暇日（いつまで）">
+        <b-datepicker
+          v-model="toDate.dt"
+          placeholder="日付を選択してください"
+          icon="calendar-today"
+          :min-date="fromDate.dt"
+          :month-names="monthName"
+          :day-names="['日', '月', '火', '水', '木', '金', '土']"
+          :mobile-native="false" />
+      </b-field>
+      <div class="block">
+        <b-radio
+          v-for="time in selectableTime"
+          :key="time.value"
+          v-model="toDate.time"
+          :native-value="time.value">
+          {{ time.label }}
+        </b-radio>
+      </div>
+    </template>
+    <b-field label="休暇理由">
+      <b-input
+        v-model="reason"
+        maxlength="500"
+        type="textarea"
+        placeholder="伝達事項などがある場合はここに記入してください。" />
+    </b-field>
+    <div class="block buttons">
+      <button
+        type="button"
+        class="button is-dark is-outlined"
+        @click="cancel">
+        キャンセル
+      </button>
+      <button
+        type="button"
+        class="button is-primary"
+        @click="toCheck">
+        確認画面へ
+      </button>
+    </div>
+  </div>
 </template>
+
+<style lang="scss" scoped>
+.term {
+  &:after {
+    content: "日間";
+    display: inline-block;
+    height: 2.25em;
+    line-height: 2.25em;
+  }
+}
+.buttons {
+  display: flex;
+  justify-content: space-between;
+  button {
+    width: 40%;
+  }
+}
+</style>
