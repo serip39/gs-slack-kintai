@@ -24,16 +24,20 @@ export default {
           desc: '休暇申請(有休/代休/慶弔/欠勤)'
         },
         {
-          name: 'overWork',
-          desc: '残業申請'
-        },
-        {
           name: 'lateIn',
           desc: '遅刻申請'
         },
         {
           name: 'earlyOut',
           desc: '早退申請'
+        },
+        {
+          name: 'earlyIn',
+          desc: '早出申請'
+        },
+        {
+          name: 'overWork',
+          desc: '残業申請'
         }
       ],
       isChecked: false,
@@ -89,7 +93,8 @@ export default {
           :type="selected"
           :req="req"
           :user="user"
-          @toggle-checked="toggleChecked" />
+          @toggle-checked="toggleChecked"
+          @go-top="$emit('go-to', 'timesheet')" />
         <Vacation
           v-else-if="selected.name === 'vacation'"
           :req="req"

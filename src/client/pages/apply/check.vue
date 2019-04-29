@@ -19,7 +19,8 @@ export default {
 
   data () {
     return {
-
+      isLoading: false,
+      isCompleted: false
     }
   },
 
@@ -37,30 +38,37 @@ export default {
             return '欠勤申請'
         }
       }
-      console.log(key, val)
       if (key.match(/date/i)) {
         const weekday = ['日', '月', '火', '水', '木', '金', '土']
-        let formatDate = 'YYYY/MM/DD(WW) hh:mm'
-        formatDate = formatDate.replace(/YYYY/g, val.getFullYear())
-        formatDate = formatDate.replace(/MM/g, ('0' + (val.getMonth() + 1)).slice(-2))
-        formatDate = formatDate.replace(/DD/g, ('0' + val.getDate()).slice(-2))
-        formatDate = formatDate.replace(/WW/g, weekday[val.getDay()])
-        formatDate = formatDate.replace(/hh/g, ('0' + val.getHours()).slice(-2))
-        formatDate = formatDate.replace(/mm/g, ('0' + val.getMinutes()).slice(-2))
-        formatDate = formatDate.replace(/ss/g, ('0' + val.getSeconds()).slice(-2))
-        return formatDate
+        let format = 'YYYY/MM/DD(WW) hh:mm'
+        format = format.replace(/YYYY/g, val.getFullYear())
+        format = format.replace(/MM/g, ('0' + (val.getMonth() + 1)).slice(-2))
+        format = format.replace(/DD/g, ('0' + val.getDate()).slice(-2))
+        format = format.replace(/WW/g, weekday[val.getDay()])
+        format = format.replace(/hh/g, ('0' + val.getHours()).slice(-2))
+        format = format.replace(/mm/g, ('0' + val.getMinutes()).slice(-2))
+        format = format.replace(/ss/g, ('0' + val.getSeconds()).slice(-2))
+        return format
       }
       return val
     }
   },
 
   computed: {
+    arrangedReq () {
+      if (this.type.name !== 'vacation') return this.req
+      const clone = JSON.parse(JSON.stringify(this.req))
+      return clone.map(obj => {
+        if (obj.key.match(/date/i)) obj.val = this.setDatetime(obj.key, obj.val)
+        return obj
+      })
+    }
 
   },
 
   methods: {
     dateToStr (date) {
-      let format = 'YYYY-MM-DD hh:mm'
+      let format = 'YYYY-MM-DD hh:mm:ss'
       format = format.replace(/YYYY/g, date.getFullYear())
       format = format.replace(/MM/g, ('0' + (date.getMonth() + 1)).slice(-2))
       format = format.replace(/DD/g, ('0' + date.getDate()).slice(-2))
@@ -83,32 +91,54 @@ export default {
       }
     },
 
+    setDatetime (key, obj) {
+      let dt = new Date(obj.dt)
+      if (key === 'fromDate') {
+        dt = obj.time === 'afternoon' ? dt.setHours(13, 30, 0) : dt.setHours(9, 30, 0)
+      } else if (key === 'toDate') {
+        dt = obj.time === 'morning' ? dt.setHours(13, 30, 0) : dt.setHours(18, 30, 0)
+      }
+      return new Date(dt)
+    },
+
+    arrangeData (obj) {
+      const result = {}
+      result.user = this.user.slackName
+      result.task = this.type.name === 'vacation' ? this.type.name + '-' + obj.type : this.type.name
+      result.from = this.type.name === 'vacation' ? obj.fromDate :
+        (this.type.name === 'earlyIn' || this.type.name === 'lateIn') ? obj.date : ''
+      result.to = this.type.name === 'vacation' ? obj.toDate :
+        (this.type.name === 'earlyOut' || this.type.name === 'overWork') ? obj.date : ''
+      result.reason = obj.reason
+      return result
+    },
+
     submit () {
-      console.log(this.req)
-      const reqObj = this.req.reduce((acc, obj) => {
+      this.toggleLoading()
+
+      const reqObj = this.arrangedReq.reduce((acc, obj) => {
         acc[obj.key] = obj.key.match(/date/i) ? this.dateToStr(obj.val) : obj.val
         return acc
       }, {})
-      console.log(reqObj, this.type)
-      const task = this.type.name === 'vacation' ? this.type.name + '-' + reqObj.type : this.type.name
-      const data = {
-        user: this.user.slackName,
-        task,
-        from: reqObj.fromDate,
-        to: reqObj.toDate,
-        text: reqObj.reason
-      }
+
       google.script.run
         .withSuccessHandler(data => {
           console.log(data)
+          this.isCompleted = true
         })
         .withFailureHandler(err => {
           console.log(err)
-        }).postApply(data)
+        }).postApply(this.arrangeData(reqObj))
+
+      this.toggleLoading()
     },
 
     cancel () {
       this.$emit('toggle-checked')
+    },
+
+    toggleLoading () {
+      this.isLoading = !this.isLoading
     }
   }
 }
@@ -117,16 +147,19 @@ export default {
 
 <template lang="html">
   <div class="check">
-    <div class="desc">
+    <b-loading :active.sync="isLoading" />
+    <p v-show="!isCompleted">
       この内容で申請してもよろしいでしょうか？
-    </div>
+    </p>
     <table>
-      <tr v-for="obj in req">
+      <tr v-for="obj in arrangedReq">
         <th>{{ obj.desc }}</th>
         <td>{{ obj.val | arrangedStr(obj.key) }}</td>
       </tr>
     </table>
-    <div class="block buttons">
+    <div
+      v-if="!isCompleted"
+      class="block buttons">
       <button
         type="button"
         class="button is-dark is-outlined"
@@ -140,13 +173,21 @@ export default {
         申請
       </button>
     </div>
+    <div
+      v-else
+      class="block">
+      <p>上記の申請が完了しました。</p>
+      <button
+        type="button"
+        class="button is-primary"
+        @click="$emit('go-top')">
+        トップに戻る
+      </button>
+    </div>
   </div>
 </template>
 
 <style lang="scss" scoped>
-.desc {
-  padding-bottom: 10px;
-}
 table {
   width: 100%;
   table-layout: fixed;

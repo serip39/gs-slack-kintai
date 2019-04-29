@@ -98,7 +98,9 @@ global.getUserData = userId => {
 }
 
 global.postApply = data => {
-  createlog(data)
+  data.time = moment.getNow()
+  spreadsheet.createApply(data)
+  return ContentService.createTextOutput()
 }
 
 const copyLogIfNeeded = () => {

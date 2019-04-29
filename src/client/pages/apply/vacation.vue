@@ -2,6 +2,13 @@
 export default {
   name: 'applyVacation',
 
+  props: {
+    req: {
+      type: Array,
+      default: () => ([])
+    }
+  },
+
   data () {
     return {
       type: 'paid',
@@ -70,17 +77,15 @@ export default {
       return this.times.filter(obj => obj.value !== 'all')
     },
 
-    maxDate () {
-      const date = this.fromDate.dt
-      const increment = this.term - 1
-      return new Date(date.getFullYear(), date.getMonth(), date.getDate() + increment)
+    isCompleted () {
+      return !!this.type && !!this.reason
     }
   },
 
   watch: {
     fromDate: {
       handler (obj) {
-        let diff = this.toDate.dt.getTime() - obj.dt.getTime()
+        const diff = this.toDate.dt.getTime() - obj.dt.getTime()
         if (diff < 0) {
           this.toDate.dt = obj.dt
         }
@@ -89,28 +94,29 @@ export default {
     }
   },
 
+  mounted () {
+    if (!this.req.length) return
+    const reqObj = this.req.reduce((acc, obj) => {
+      acc[obj.key] = obj.val
+      return acc
+    }, {})
+    this.type = reqObj.type
+    this.term = reqObj.term
+    this.fromDate = reqObj.fromDate
+    this.toDate = reqObj.toDate
+    this.reason = reqObj.reason
+  },
+
   methods: {
     setInitTime () {
       if (this.fromDate.time === 'all') this.fromDate.time = 'morning'
     },
 
-    arrangeFromTime (obj) {
-      if (obj.time === 'all' || obj.time === 'morning') {
-        return new Date(obj.dt.setHours(9, 30, 0))
-      } else if (obj.time === 'afternoon') {
-        return new Date(obj.dt.setHours(13, 30, 0))
-      }
-    },
-
-    arrangeToTime (obj) {
-      if (obj.time === 'all' || obj.time === 'afternoon') {
-        return new Date(obj.dt.setHours(18, 30, 0))
-      } else if (obj.time === 'morning') {
-        return new Date(obj.dt.setHours(13, 30, 0))
-      }
-    },
-
     toCheck () {
+      if (this.term === 1) {
+        this.toDate.dt = new Date(this.fromDate.dt)
+        this.toDate.time = JSON.parse(JSON.stringify(this.fromDate.time))
+      }
       const data =[
         {
           key: 'type',
@@ -123,11 +129,11 @@ export default {
         },{
           key: 'fromDate',
           desc: 'いつから',
-          val: this.arrangeFromTime(this.fromDate)
+          val: this.fromDate
         },{
           key: 'toDate',
           desc: 'いつまで',
-          val: this.arrangeToTime(this.toDate)
+          val: this.toDate
         },{
           key: 'reason',
           desc: '理由',
@@ -172,6 +178,7 @@ export default {
         custom-class="num">
       </b-input>
     </b-field>
+    <p>(※)上記は有休や代休の消化日数ではないので、2日以上連続で休む場合は2日以上を選択してください。</p>
     <b-field :label="fromLabel">
       <b-datepicker
         v-model="fromDate.dt"
@@ -227,7 +234,8 @@ export default {
       </button>
       <button
         type="button"
-        class="button is-primary"
+        class="button"
+        :class="isCompleted ? 'is-primary' : 'is-disabled'"
         @click="toCheck">
         確認画面へ
       </button>

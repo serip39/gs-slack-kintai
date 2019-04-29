@@ -1,9 +1,10 @@
 export default class {
   constructor () {
     this.target = SpreadsheetApp.getActiveSpreadsheet()
-    this._memberHead = ['id', 'name', 'employment', 'department', 'workStyle', 'email', 'tel', 'slackName', 'slackId', 'slackIM', 'startedAt', 'endedAt', 'memo']
+    this._memberHead = ['id', 'name', 'employment', 'department_id', 'email', 'tel', 'slackName', 'slackId', 'slackIM', 'startedAt', 'endedAt', 'memo']
     this._timesheetHead = ['date', 'clockIn', 'clockOut', 'breakStart', 'breakEnd', 'extra', 'lateNight', 'break', 'length', 'status', 'approval']
     this._logHead = ['id', 'time', 'user', 'action', 'posted']
+    this._departmentHead = ['id', 'department', 'manager_id']
     this._numRowStartRecord = 23
   }
 
@@ -164,6 +165,20 @@ export default class {
   getUserRecords (userName) {
     const sheet = this.target.getSheetByName(userName)
     return this.getAllData(sheet, this._timesheetHead, 22, 1)
+  }
+
+  createApply (payload) {
+    const id = '=ROW() - 1'
+    const time = payload.time
+    const user = payload.user
+    const task = payload.task
+    const from = payload.from
+    const to = payload.to
+    const reason = payload.reason
+    const approval = 0
+    const posted = 0
+    const sheet = this.target.getSheetByName('_apply')
+    sheet.appendRow([id, time, user, task, from, to, reason, approval, posted])
   }
 
   matrixToArrObj (matrix, header) {

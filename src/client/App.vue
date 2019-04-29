@@ -29,7 +29,6 @@ export default {
 
   methods: {
     logIn (user) {
-      console.log('user', user)
       this.user = user
     },
 
@@ -62,7 +61,8 @@ export default {
         :user="user" />
       <Apply
         v-else-if="page === 'apply'"
-        :user="user" />
+        :user="user"
+        @go-to="goTo" />
     </template>
   </div>
 </template>
@@ -125,6 +125,12 @@ html, body {
 
 .button {
   width: 100%;
+  &.is-disabled {
+    pointer-events: none;
+    &::hover {
+      cursor: not-allowed;
+    }
+  }
 }
 
 // .timepicker {
