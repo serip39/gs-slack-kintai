@@ -78,9 +78,10 @@ global.getTimeRecords = (userName, fromDate, toDate) => {
   const data = spreadsheet.getUserRecords(userName)
   const dataPeriod = data.filter(log => moment.isBetween(log.date, fromDate, toDate))
   return dataPeriod.map(obj => {
+    let clockIn = new Date(obj.clockIn)
     Object.keys(obj).forEach(key => {
       if (Object.prototype.toString.call(obj[key]) === '[object Date]') {
-        obj[key] = moment.formatStr(key, obj[key])
+        obj[key] = moment.formatStr(key, obj[key], clockIn)
       }
     })
     return obj
@@ -121,8 +122,8 @@ const copyLogIfNeeded = () => {
       const rowData = spreadsheet.getRowDataInUserSheet(log.user, numRow)
       const result = moment.calLength(rowData)
       spreadsheet.updateRowDataInUserSheet(log.user, numRow, result)
+      result.clockOut = moment.formatStr('clockOut', result.clockOut, result.clockIn)
       result.clockIn = moment.formatStr('clockIn', result.clockIn)
-      result.clockOut = moment.formatStr('clockOut', result.clockOut)
       const channel = 'DHACEP005'
       const text = ''
       const blocks = setApproveMsg(user, result, moment.format(result.date, 'YYYY-MM-DD'))
