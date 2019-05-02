@@ -2,7 +2,7 @@ export default class {
   constructor () {
     this.target = SpreadsheetApp.getActiveSpreadsheet()
     this._memberHead = ['id', 'name', 'employment', 'department_id', 'email', 'tel', 'slackName', 'slackId', 'slackIM', 'startedAt', 'endedAt', 'memo']
-    this._timesheetHead = ['date', 'clockIn', 'clockOut', 'breakStart', 'breakEnd', 'extra', 'lateNight', 'break', 'length', 'status', 'approval']
+    this._timesheetHead = ['date', 'clockIn', 'clockOut', 'breakStart', 'breakEnd', 'extra', 'lateNight', 'break', 'length', 'status', 'memo', 'approval']
     this._logHead = ['id', 'time', 'user', 'action', 'posted']
     this._departmentHead = ['id', 'department', 'manager_id']
     this._numRowStartRecord = 23
@@ -128,8 +128,8 @@ export default class {
   }
 
   getLogsToCopy () {
-    // const sheet = this.target.getSheetByName('_log')
-    const sheet = this.target.getSheetByName('_logOld')
+    const sheet = this.target.getSheetByName('_log')
+    // const sheet = this.target.getSheetByName('_logOld')
     const logs = this.getAllData(sheet, this._logHead, 1, 1)
     return logs.filter(data => !data.posted)
   }
@@ -172,8 +172,8 @@ export default class {
   }
 
   updateLog (numRow) {
-    // const sheet = this.target.getSheetByName('_log')
-    const sheet = this.target.getSheetByName('_logOld')
+    const sheet = this.target.getSheetByName('_log')
+    // const sheet = this.target.getSheetByName('_logOld')
     const numCol = this._logHead.indexOf('posted') + 1
     sheet.getRange(numRow, numCol).setValue(1)
   }

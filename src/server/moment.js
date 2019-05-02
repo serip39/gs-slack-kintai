@@ -3,6 +3,8 @@ export default class {
     this.startTime = '09:30'
     this.endTime = '18:30'
     this.nightTime = '22:00'
+    this.calIdHolidayJP = 'ja.japanese#holiday@group.v.calendar.google.com'
+    this.calHolidayJP = CalendarApp.getCalendarById(this.calIdHolidayJP)
   }
 
   createCalender (start, end) {
@@ -87,6 +89,27 @@ export default class {
     return dt
   }
 
+  isHoliday (date) {
+    const dt = new Date(date)
+    const intWeek = dt.getDay()
+    if (intWeek === 0 || intWeek === 6) return true
+    return this.isHolidayInWeekday(dt)
+  }
+
+  isHolidayInWeekday (date) {
+    const dt = new Date(date)
+    const intWeek = dt.getDay()
+    if (intWeek === 0 || intWeek === 6) return false
+    const calEvent = this.calHolidayJP.getEventsForDay(dt)
+    return calEvent.length > 0
+  }
+
+  addStatus (str, val) {
+    if (str) str += ', '
+    str += val
+    return str
+  }
+
   calLength (obj) {
     const startTime = this.setTime(obj.date, this.startTime)
     const endTime = this.setTime(obj.date, this.endTime)
@@ -121,6 +144,14 @@ export default class {
     obj.lateNight = this.minToStr(lengthNight)
     obj.break = this.minToStr(lengthBreak)
     obj.length = this.minToStr(lengthWork)
+
+    if (this.isHoliday(obj.clockIn)) {
+      if (lengthWork < 240) {
+        obj.status = this.addStatus(obj.status, '休日出勤-半日')
+      } else {
+        obj.status = this.addStatus(obj.status, '休日出勤')
+      }
+    }
 
     return obj
   }
