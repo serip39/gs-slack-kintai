@@ -24,7 +24,7 @@ export default class {
     return data.ims.map(ims => {
       return {
         id: ims.id,
-        user: ims.user
+        slackId: ims.user
       }
     })
   }

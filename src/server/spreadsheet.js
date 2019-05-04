@@ -100,6 +100,29 @@ export default class {
     }
   }
 
+  addSlackIM (IMList) {
+    const sheet = this.target.getSheetByName('_member')
+    const users = this.getAllData(sheet, this._memberHead, 1, 1)
+    let shouldUpdated = false
+    const updatedUsers = users.map(user => {
+      if (!user.slackIM) {
+        for (let i = 0; i < IMList.length; i++) {
+          if (IMList[i].slackId === user.slackId) {
+            user.slackIM = IMList[i].id
+            shouldUpdated = true
+            break
+          }
+        }
+      }
+      return user
+    })
+
+    if (shouldUpdated) {
+      const matrix = this.arrObjToMatrix(updatedUsers)
+      this.setAllData(sheet, matrix, 1, 1)
+    }
+  }
+
   createTimesheet (username, calender) {
     const timeSheet = this.target.insertSheet(username)
     const header = this._timesheetHead

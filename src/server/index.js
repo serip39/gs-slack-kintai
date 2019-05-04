@@ -20,6 +20,12 @@ global.initialSetting = () => {
   }
 }
 
+global.setSlackIM = () => {
+  const IMList = slack.getIMList()
+  Logger.log(IMList)
+  spreadsheet.addSlackIM(IMList)
+}
+
 global.test = () => {
   copyLogIfNeeded()
 }
