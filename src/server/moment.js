@@ -18,6 +18,28 @@ export default class {
     return calenders
   }
 
+  isLeapYear (year) {
+    return year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0)
+  }
+
+  calTerm (start, end) {
+    const startMonth = new Date(start).getMonth()
+    const endMonth = new Date(end).getMonth()
+    const lastDays = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+    const lastDaysInTerm = []
+    for (let month = startMonth; month <= endMonth; month++) {
+      if (month === 1 && this.isLeapYear(new Date(start).getFullYear())) {
+        lastDaysInTerm.push(29)
+      } else {
+        lastDaysInTerm.push(lastDays[month])
+      }
+    }
+    return {
+      start: startMonth + 1,
+      days: lastDaysInTerm
+    }
+  }
+
   getNow (format) {
     const now = new Date()
     return this.format(now, 'YYYY-MM-DD hh:mm:ss')

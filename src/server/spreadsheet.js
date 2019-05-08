@@ -133,6 +133,61 @@ export default class {
     timeSheet.getRange(23, 1, numRow, numCol).setValues(calender)
   }
 
+  createFormula (username, term) {
+    const cols = ['C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N']
+    const termLength = term.days.length - 1
+    const firstCol = ['', '実働日数', '平日出勤日数', '休日出勤日数', '欠勤日数', '遅刻回数', '早退回数', '有休日数', '代休日数', '慶弔休暇日数', '実労働時間', '実残業時間', '実深夜時間', '平日労働時間', '平日残業時間', '平日深夜時間', '休日労働時間', '休日残業時間', '休日深夜時間']
+    const secondCol = ['合計']
+    for (let i = 1; i < firstCol.length; i++) {
+      let num = i + 1
+      secondCol.push(`=SUM(C${num}:${cols[termLength]}${num})`)
+    }
+    let matrix = [firstCol, secondCol]
+    let month = term.start
+    let startRow = this._numRowStartRecord
+    for (let i = 0; i < term.days.length; i++) {
+      let endRow = startRow + term.days[i] - 1
+      let extra = `F${startRow}:F${endRow}`
+      let lateNight = `G${startRow}:G${endRow}`
+      let length = `I${startRow}:I${endRow}`
+      let status = `J${startRow}:J${endRow}`
+      const data = [
+        month,
+        `=SUM(${cols[i]}3:${cols[i]}4)`,
+        `=COUNT(${length}) - COUNTIF(${status}, "休日出勤*")`,
+        `=COUNTIF(${status}, "休日出勤") + COUNTIF(${status}, "休日出勤-半日") * 0.5`,
+        `=COUNTIF(${status}, "*欠勤*")`,
+        `=COUNTIF(${status}, "*遅刻*")`,
+        `=COUNTIF(${status}, "*早退*")`,
+        `=COUNTIF(${status}, "有休") + COUNTIF(${status}, "有休-午?") * 0.5`,
+        `=COUNTIF(${status}, "代休") + COUNTIF(${status}, "代休-午?") * 0.5`,
+        `=COUNTIF(${status}, "慶弔休暇") + COUNTIF(${status}, "慶弔休暇-午?") * 0.5`,
+        `=SUM(${length})`,
+        `=SUM(${extra})`,
+        `=SUM(${lateNight})`,
+        `=${cols[i]}11-${cols[i]}17`,
+        `=${cols[i]}12-${cols[i]}18`,
+        `=${cols[i]}13-${cols[i]}19`,
+        `=SUMIF(${status}, "休日出勤*" ,${length})`,
+        `=SUMIF(${status}, "休日出勤*" ,${extra})`,
+        `=SUMIF(${status}, "休日出勤*" ,${lateNight})`
+      ]
+      matrix.push(data)
+      startRow = endRow + 1
+      month++
+    }
+
+    matrix = this.transposeArray(matrix)
+
+    const numRow = matrix.length
+    const numCol = matrix[0].length
+    const sheet = this.target.getSheetByName(username)
+    sheet.getRange(1, 1, numRow, numCol).setValues(matrix)
+
+    // 時間の表示形式を設定
+    sheet.getRange(11, 2, 9, numCol - 1).setNumberFormat('[h]:mm:ss')
+  }
+
   addLogForTimestamp (payload) {
     const id = '=ROW() - 1'
     const time = payload.time

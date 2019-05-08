@@ -13,10 +13,12 @@ global.initialSetting = () => {
   spreadsheet.addSlackId(slackUsers)
   // 各人のシート作成
   const calender = moment.createCalender('2019/01/01', '2019/12/31')
+  const calTerm = moment.calTerm('2019/01/01', '2019/12/31')
   const users = spreadsheet.getAllUsers()
   createlog(users)
   for (let i = 0; i < users.length; i++) {
     spreadsheet.createTimesheet(users[i], calender)
+    spreadsheet.createFormula(users[i], calTerm)
   }
 }
 
@@ -24,6 +26,17 @@ global.setSlackIM = () => {
   const IMList = slack.getIMList()
   Logger.log(IMList)
   spreadsheet.addSlackIM(IMList)
+}
+
+global.addFormula = () => {
+  const calTerm = moment.calTerm('2019/01/01', '2019/12/31')
+  const users = spreadsheet.getAllUsers()
+  for (let i = 0; i < users.length; i++) {
+    if (users[i] !== 'onuki' && users[i] !== 'kimura' && users[i] !== 'ogihara') {
+      Logger.log(users[i])
+      spreadsheet.createFormula(users[i], calTerm)
+    }
+  }
 }
 
 global.test = () => {
