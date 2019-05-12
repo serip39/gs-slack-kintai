@@ -199,6 +199,14 @@ export default {
       this.defaultOpenedDetails = [ row.date ]
     },
 
+    addHoliday (row) {
+      const intWeek = row.date
+      if (intWeek.includes('日')) return 'sunday'
+      if (intWeek.includes('土')) return 'saturday'
+      if (intWeek.includes('祝')) return 'national'
+      return ''
+    },
+
     getData () {
       this.isLoading = true
       const fromDate = this.month
@@ -258,6 +266,7 @@ export default {
         :detailed="isMobile"
         detail-key="date"
         :opened-detailed="defaultOpenedDetails"
+        :row-class="row => addHoliday(row)"
         @details-open="row => closeAllOtherDetails(row)"
         :showDetailIcon="false"
         @click="toggle($event)">

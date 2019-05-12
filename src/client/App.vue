@@ -133,6 +133,20 @@ html, body {
   }
 }
 
+.b-table {
+  tr {
+    &.sunday {
+      background-color: rgba(255,0,0,0.1)!important;
+    }
+    &.saturday {
+      background-color: rgba(0,0,255,0.1)!important;
+    }
+    &.national {
+      background-color: rgba(255,255,0,0.3)!important;
+    }
+  }
+}
+
 // .timepicker {
 //   .dropdown-content {
 //     padding: 0;

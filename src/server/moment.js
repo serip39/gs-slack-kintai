@@ -52,6 +52,7 @@ export default class {
     format = format.replace(/MM/g, ('0' + (date.getMonth() + 1)).slice(-2))
     format = format.replace(/DD/g, ('0' + date.getDate()).slice(-2))
     format = format.replace(/WW/g, weekday[date.getDay()])
+    if (format.match(/(月|火|水|木|金)/) && this.isHolidayInWeekday(date)) format = format.replace(/(月|火|水|木|金)/, '祝')
     format = overnight ? format.replace(/hh/g, date.getHours() + 24)
       : format.replace(/hh/g, ('0' + date.getHours()).slice(-2))
     format = format.replace(/mm/g, ('0' + date.getMinutes()).slice(-2))
@@ -120,8 +121,6 @@ export default class {
 
   isHolidayInWeekday (date) {
     const dt = new Date(date)
-    const intWeek = dt.getDay()
-    if (intWeek === 0 || intWeek === 6) return false
     const calEvent = this.calHolidayJP.getEventsForDay(dt)
     return calEvent.length > 0
   }
