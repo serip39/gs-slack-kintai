@@ -94,9 +94,14 @@ global.timeDrivenFunction = () => {
 }
 
 global.getTimeRecords = (userName, fromDate, toDate) => {
-  const data = spreadsheet.getUserRecords(userName)
-  const dataPeriod = data.filter(log => moment.isBetween(log.date, fromDate, toDate))
-  return dataPeriod.map(obj => {
+  Logger.log(userName, fromDate, toDate)
+  const user = spreadsheet.getUserData('slackName', userName)
+  const startDate = user.startedAt
+  const startRow = moment.diff(startDate, fromDate, 'days')
+  const numRow = moment.diff(fromDate, toDate, 'days')
+  const numMonth = moment.getMonth(fromDate)
+  const data = spreadsheet.getUserRecords(userName, startRow, numRow, numMonth)
+  const logs = data.timelogs.map(obj => {
     let clockIn = new Date(obj.clockIn)
     Object.keys(obj).forEach(key => {
       if (Object.prototype.toString.call(obj[key]) === '[object Date]') {
@@ -105,6 +110,15 @@ global.getTimeRecords = (userName, fromDate, toDate) => {
     })
     return obj
   })
+
+  let summary = data.summary
+  Object.keys(summary).forEach(key => {
+    if (Object.prototype.toString.call(summary[key]) === '[object Date]') {
+      summary[key] = moment.formatTerm(summary[key])
+    }
+  })
+
+  return { summary, logs }
 }
 
 global.getUserData = userId => {

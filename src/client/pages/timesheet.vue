@@ -16,6 +16,7 @@ export default {
       month: '',
       selectedId: null,
       defaultOpenedDetails: [],
+      summary: {},
       records: [],
       columns: []
     }
@@ -219,7 +220,8 @@ export default {
     },
 
     setData (data) {
-      this.records = data
+      this.records = data.logs
+      this.summary = data.summary
       this.isLoading = false
     }
   }
@@ -253,6 +255,74 @@ export default {
             type="is-primary" />
         </span>
       </div>
+      <template v-if="isMobile">
+        <table class="summary-mobile">
+          <thead>
+            <tr>
+              <th>総計</th>
+              <th>残業</th>
+              <th>深夜</th>
+            </tr>
+          </thead>
+          <tbody>
+            <td>{{ summary.sumWorkTime }}</td>
+            <td>{{ summary.sumExtraTime }}</td>
+            <td>{{ summary.sumNightTime }}</td>
+          </tbody>
+        </table>
+      </template>
+      <template v-else>
+        <table class="summary">
+          <tr>
+            <th>実働日数</th>
+            <td>{{ summary.workDay }}</td>
+            <th>平日出勤日数</th>
+            <td>{{ summary.workDayInWd }}</td>
+            <th>休日出勤日数</th>
+            <td>{{ summary.workDayInHd }}</td>
+          </tr>
+          <tr>
+            <th>欠勤日数</th>
+            <td>{{ summary.absence }}</td>
+            <th>遅刻回数</th>
+            <td>{{ summary.lateIn }}</td>
+            <th>早退回数</th>
+            <td>{{ summary.earlyOut }}</td>
+          </tr>
+          <tr>
+            <th>有休日数</th>
+            <td>{{ summary.hdPaid }}</td>
+            <th>代休日数</th>
+            <td>{{ summary.hdCompensation }}</td>
+            <th>慶弔休暇日数</th>
+            <td>{{ summary.hdSpecial }}</td>
+          </tr>
+          <tr>
+            <th>実労働時間</th>
+            <td>{{ summary.sumWorkTime }}</td>
+            <th>実残業時間</th>
+            <td>{{ summary.sumExtraTime }}</td>
+            <th>実深夜時間</th>
+            <td>{{ summary.sumNightTime }}</td>
+          </tr>
+          <tr>
+            <th>平日労働時間</th>
+            <td>{{ summary.workTimeInWd }}</td>
+            <th>平日残業時間</th>
+            <td>{{ summary.extraTimeInWd }}</td>
+            <th>平日深夜時間</th>
+            <td>{{ summary.nightTimeInWd }}</td>
+          </tr>
+          <tr>
+            <th>休日労働時間</th>
+            <td>{{ summary.workTimeInHd }}</td>
+            <th>休日残業時間</th>
+            <td>{{ summary.extraTimeInHd }}</td>
+            <th>休日深夜時間</th>
+            <td>{{ summary.nightTimeInHd }}</td>
+          </tr>
+        </table>
+      </template>
       <b-table
         :data="isEmpty ? [] : records"
         ref="table"
@@ -328,6 +398,17 @@ export default {
     color: #2991E1;
     &:hover {
       cursor: pointer;
+    }
+  }
+}
+.summary {
+  width: 80%;
+  margin: 0 auto;
+  table-layout: fixed;
+  &-mobile {
+    border: solid 1px #ddd;
+    th, td {
+      text-align: center;
     }
   }
 }

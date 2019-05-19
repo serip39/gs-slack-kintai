@@ -3,6 +3,7 @@ export default class {
     this.target = SpreadsheetApp.getActiveSpreadsheet()
     this._memberHead = ['id', 'name', 'employment', 'department_id', 'email', 'tel', 'slackName', 'slackId', 'slackIM', 'startedAt', 'endedAt', 'memo']
     this._timesheetHead = ['date', 'clockIn', 'clockOut', 'breakStart', 'breakEnd', 'extra', 'lateNight', 'break', 'length', 'status', 'memo', 'approval']
+    this._timesheetSummary = ['workDay', 'workDayInWd', 'workDayInHd', 'absence', 'lateIn', 'earlyOut', 'hdPaid', 'hdCompensation', 'hdSpecial', 'sumWorkTime', 'sumExtraTime', 'sumNightTime', 'workTimeInWd', 'extraTimeInWd', 'nightTimeInWd', 'workTimeInHd', 'extraTimeInHd', 'nightTimeInHd']
     this._logHead = ['id', 'time', 'user', 'action', 'posted']
     this._departmentHead = ['id', 'department', 'manager_id']
     this._numRowStartRecord = 23
@@ -256,9 +257,22 @@ export default class {
     sheet.getRange(numRow, numCol).setValue(1)
   }
 
-  getUserRecords (userName) {
+  getUserRecords (userName, startRow, numRow, numMonth) {
     const sheet = this.target.getSheetByName(userName)
-    return this.getAllData(sheet, this._timesheetHead, 22, 1)
+    startRow += this._numRowStartRecord
+    const numCol = this._timesheetHead.length
+    let timelogs = sheet.getRange(startRow, 1, numRow, numCol).getValues()
+    timelogs = this.matrixToArrObj(timelogs, this._timesheetHead)
+
+    Logger.log(timelogs)
+
+    let summary = sheet.getRange(2, numMonth + 2, this._timesheetSummary.length, 1).getValues()
+    summary = this.transposeArray(summary)
+    summary = this.matrixToArrObj(summary, this._timesheetSummary)[0]
+
+    Logger.log(summary)
+
+    return { timelogs, summary }
   }
 
   createApply (payload) {

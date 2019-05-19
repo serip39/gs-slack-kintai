@@ -45,6 +45,11 @@ export default class {
     return this.format(now, 'YYYY-MM-DD hh:mm:ss')
   }
 
+  getMonth (date) {
+    const dt = new Date(date)
+    return dt.getMonth() + 1
+  }
+
   format (date, format, overnight = false) {
     const weekday = ['日', '月', '火', '水', '木', '金', '土']
     if (!format) format = 'YYYY-MM-DD(WW) hh:mm:ss'
@@ -65,6 +70,16 @@ export default class {
     if (key === 'startedAt' || key === 'endedAt') return this.format(date, 'YYYY/MM/DD')
     if ((key === 'clockOut' || key === 'breakStart' || key === 'breakEnd') && !this.isSameDay(clockIn, date)) return this.format(date, 'hh:mm', true)
     return this.format(date, 'hh:mm')
+  }
+
+  formatTerm (date) {
+    const baseTime = new Date('Sat Dec 30 00:00:00 GMT+09:00 1899')
+    const msDiff = date.getTime() - baseTime.getTime()
+    const minDiff = Math.floor(msDiff / (60 * 1000))
+    const calhour = Math.floor(minDiff / 60)
+    const hour = calhour < 10 ? ('0' + calhour).slice(-2) : calhour
+    const min = ('0' + minDiff % 60).slice(-2)
+    return hour + ':' + min
   }
 
   diff (date1Str, date2Str, type) {
