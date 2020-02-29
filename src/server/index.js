@@ -1,190 +1,185 @@
-import Slack from './slack'
-import Spreadsheet from './spreadsheet'
-import Moment from './moment'
-import { setMsgToUser, setInteractiveResponseMsg, setApproveMsg } from './message'
-
-const spreadsheet = new Spreadsheet()
-const slack = new Slack('test')
-const moment = new Moment()
-
-global.initialSetting = () => {
-  // slackのID取得
-  const slackUsers = slack.getUserList()
-  spreadsheet.addSlackId(slackUsers)
-  // 各人のシート作成
-  const calender = moment.createCalender('2019/01/01', '2019/12/31')
-  const calTerm = moment.calTerm('2019/01/01', '2019/12/31')
-  const users = spreadsheet.getAllUsers()
-  createlog(users)
-  for (let i = 0; i < users.length; i++) {
-    spreadsheet.createTimesheet(users[i], calender)
-    spreadsheet.createFormula(users[i], calTerm)
-  }
-}
-
-global.setSlackIM = () => {
-  const IMList = slack.getIMList()
-  Logger.log(IMList)
-  spreadsheet.addSlackIM(IMList)
-}
-
-global.addFormula = () => {
-  const calTerm = moment.calTerm('2019/01/01', '2019/12/31')
-  const users = spreadsheet.getAllUsers()
-  for (let i = 0; i < users.length; i++) {
-    if (users[i] !== 'onuki' && users[i] !== 'kimura' && users[i] !== 'ogihara') {
-      Logger.log(users[i])
-      spreadsheet.createFormula(users[i], calTerm)
-    }
-  }
-}
-
-global.test = () => {
-  copyLogIfNeeded()
-}
-
-global.doGet = () => {
-  let htmlOutput = HtmlService.createTemplateFromFile('index').evaluate()
-  htmlOutput.setTitle('勤怠管理')
-  htmlOutput.addMetaTag('viewport', 'minimal-ui, width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no')
-  htmlOutput.addMetaTag('mobile-web-app-capable', 'yes')
-  return htmlOutput
-}
-
 global.doPost = (e) => {
   // Interactive messagesの場合
   if (e.parameter.payload) {
     const payload = JSON.parse(e.parameter.payload)
     if (payload.type === 'block_actions') {
       if (payload.actions[0].action_id !== 'cancel') {
-        payload.time = moment.getNow()
-        spreadsheet.addLogForTimestamp(payload)
+        const now = new Date()
+        payload.time = datetimeFormat(now)
+        addLogForTimestamp(payload)
       }
-      slack.post(payload.response_url, setInteractiveResponseMsg(payload))
+      postHTTP(payload.response_url, setInteractiveResponseMsg(payload))
     }
     return ContentService.createTextOutput() // HTTP_200OK responce（3s以内にする必要あり）
   }
 
   // EventAPIの場合
   const params = JSON.parse(e.postData.getDataAsString())
-  // createlog(params)
   if (params.type === 'url_verification') {
-    return slack.verificationForEventAPI(params)
+    const data = {
+      challenge: params.challenge
+    }
+    let response = ContentService.createTextOutput()
+    response.setContent(JSON.stringify(data))
+    response.setMimeType(ContentService.MimeType.JSON)
+    return response
   } else if (params.type === 'event_callback') {
     if (!params.event.bot_id) {
-      const isIM = params.event.channel_type === 'im'
       const channel = params.event.channel
       const text = ''
       const user = params.event.user
-      const blocks = setMsgToUser(isIM, params.event.text, params.event.user)
+      const blocks = setMsgToUser(params.event.text)
       // 何も条件に該当しなかった場合には、何もしない
       if (!blocks) return ContentService.createTextOutput() // HTTP_200OK responce（3s以内にする必要あり）
-      if (isIM) {
-        slack.postMessage(channel, text, blocks)
-      } else {
-        slack.postEphemeral(channel, text, user, blocks)
-      }
+      slackPostEphemeral(channel, text, user, blocks)
     }
     return ContentService.createTextOutput() // HTTP_200OK responce（3s以内にする必要あり）
   }
 }
 
-global.timeDrivenFunction = () => {
-  // 定期的に実行する処理を追加する
+const datetimeFormat = (date) => {
+  let format = 'YYYY-MM-DD hh:mm:ss'
+  format = format.replace(/YYYY/g, date.getFullYear())
+  format = format.replace(/MM/g, ('0' + (date.getMonth() + 1)).slice(-2))
+  format = format.replace(/DD/g, ('0' + date.getDate()).slice(-2))
+  format = format.replace(/hh/g, ('0' + date.getHours()).slice(-2))
+  format = format.replace(/mm/g, ('0' + date.getMinutes()).slice(-2))
+  format = format.replace(/ss/g, ('0' + date.getSeconds()).slice(-2))
+  return format
 }
 
-global.getTimeRecords = (userName, fromDate, toDate) => {
-  Logger.log(userName, fromDate, toDate)
-  const user = spreadsheet.getUserData('slackName', userName)
-  const startDate = user.startedAt
-  const startRow = moment.diff(startDate, fromDate, 'days')
-  const numRow = moment.diff(fromDate, toDate, 'days')
-  const numMonth = moment.getMonth(fromDate)
-  const data = spreadsheet.getUserRecords(userName, startRow, numRow, numMonth)
-  const logs = data.timelogs.map(obj => {
-    let clockIn = new Date(obj.clockIn)
-    Object.keys(obj).forEach(key => {
-      if (Object.prototype.toString.call(obj[key]) === '[object Date]') {
-        obj[key] = moment.formatStr(key, obj[key], clockIn)
-      }
-    })
-    return obj
-  })
-
-  let summary = data.summary
-  Object.keys(summary).forEach(key => {
-    if (Object.prototype.toString.call(summary[key]) === '[object Date]') {
-      summary[key] = moment.formatTerm(summary[key])
-    }
-  })
-
-  return { summary, logs }
+const addLogForTimestamp = (payload) => {
+  const ss = SpreadsheetApp.getActiveSpreadsheet()
+  const sheet = ss.getSheetByName('_log')
+  const LastRow = sheet.getLastRow()
+  const rowToAdd = LastRow + 1
+  const searchId = `=IF(AND(D${rowToAdd}="clockOut", TIMEVALUE(B${rowToAdd}) < TIMEVALUE("12:00:00")), DATEVALUE(TEXT(B${rowToAdd}, "YYYY/MM/DD"))-1&"_"&C${rowToAdd}&"_"&D${rowToAdd}, DATEVALUE(TEXT(B${rowToAdd}, "YYYY/MM/DD"))&"_"&C${rowToAdd}&"_"&D${rowToAdd})`
+  const time = payload.time
+  const user = payload.user.name
+  const task = payload.actions[0].action_id
+  sheet.appendRow([searchId, time, user, task])
 }
 
-global.getUserData = userId => {
-  const userData = spreadsheet.getUserData('slackId', userId)
-  Object.keys(userData).forEach(key => {
-    if (Object.prototype.toString.call(userData[key]) === '[object Date]') {
-      userData[key] = moment.formatStr(key, userData[key])
-    }
-  })
-  return userData
-}
-
-global.postApply = data => {
-  data.time = moment.getNow()
-  spreadsheet.createApply(data)
-  return ContentService.createTextOutput()
-}
-
-const copyLogIfNeeded = () => {
-  const logsToCopy = spreadsheet.getLogsToCopy()
-  if (!logsToCopy.length) return
-  logsToCopy.forEach(log => {
-    let user = spreadsheet.getUserData('slackName', log.user)
-    let startDate = user.startedAt
-    let numRow = moment.diff(startDate, log.time, 'days')
-    // clockIn以外は日付を超えたとしても、clockInした日付で記録する
-    while (log.action !== 'clockIn' && !spreadsheet.hasClockIn(log.user, numRow)) {
-      numRow--
-    }
-    if (spreadsheet.copyLogToUserSheet(log, numRow)) {
-      spreadsheet.updateLog(log.id + 1)
-    }
-    if (log.action === 'clockOut') {
-      const rowData = spreadsheet.getRowDataInUserSheet(log.user, numRow)
-      const result = moment.calLength(rowData)
-      spreadsheet.updateRowDataInUserSheet(log.user, numRow, result)
-      result.clockOut = moment.formatStr('clockOut', result.clockOut, result.clockIn)
-      result.clockIn = moment.formatStr('clockIn', result.clockIn)
-      const channel = 'DHACEP005'
-      const text = ''
-      const blocks = setApproveMsg(user, result, moment.format(result.date, 'YYYY-MM-DD'))
-      slack.postMessage(channel, text, blocks)
-    }
-  })
-}
-
-const createlog = (output) => {
-  if (typeof output === 'object') {
-    output = JSON.stringify(output)
+const postHTTP = (url, text) => {
+  const data = {
+    text
   }
-  const now = moment.getNow()
-  spreadsheet.log([ now, output ])
+  const options = {
+    method: 'post',
+    contentType: 'application/json',
+    payload: JSON.stringify(data)
+  }
+  UrlFetchApp.fetch(url, options)
 }
 
-// データ移行用の関数
-global.copyOldDate = () => {
-  // const users = spreadsheet.getAllUsers()
-  const users = ['hashimoto', 'kawase', 'tamaki']
-  users.forEach(userName => {
-    const oldSpread = SpreadsheetApp.openById(process.env.SPREAD_ID)
-    const sheet = oldSpread.getSheetByName(userName)
-    // 2019/1/1が196行目なのでそこからデータを取得する
-    const matrix = sheet.getRange(196, 1, 102, 3).getValues()
-    for (let i = 0; i < matrix.length; i++) {
-      if (matrix[i][1]) spreadsheet.addLogForOldTimestamp(matrix[i][1], userName, 'clockIn')
-      if (matrix[i][2]) spreadsheet.addLogForOldTimestamp(matrix[i][2], userName, 'clockOut')
+const setInteractiveResponseMsg = (payload) => {
+  const action = payload.actions[0].action_id
+  if (action === 'cancel') return '打刻をキャンセルしました'
+  const greet = greeting(action)
+  const time = strJP(action) + '時間'
+  return `${greet}（${time}：<!date^${Math.round(payload.actions[0].action_ts)}^{date_num} {time}| 1989-01-01 00:00 AM PST>）`
+}
+
+const greeting = (action) => {
+  switch (action) {
+    case 'clockIn':
+      return 'おはようございます！'
+    case 'clockOut':
+      return 'お疲れ様でした！'
+    case 'breakStart':
+      return 'ごゆっくり〜！'
+    case 'breakEnd':
+      return '気持ちを切り替えていきましょ！'
+    default:
+      return 'error'
+  }
+}
+
+const strJP = (str) => {
+  switch (str) {
+    case 'clockIn':
+      return '出勤'
+    case 'clockOut':
+      return '退勤'
+    case 'breakStart':
+      return '休憩開始'
+    case 'breakEnd':
+      return '休憩終了'
+    default:
+      return 'error'
+  }
+}
+
+const setMsgToUser = (msg) => {
+  const rules = {
+    clockIn: /(おは|おっは|hello|morning|出勤)/,
+    clockOut: /(おつ|さらば|お先|お疲|帰|乙|night|退勤)/,
+    breakStart: /(外出|ランチ|離席|離脱|休憩(?!終))/,
+    breakEnd: /(戻り|復帰|復活|休憩終)/
+  }
+  let userAction = ''
+  Object.keys(rules).forEach(action => {
+    if (msg.match(rules[action])) {
+      userAction = action
     }
   })
+  if (!userAction) return null
+  return msgForConfirmation(userAction)
+}
+
+const msgForConfirmation = (action) => {
+  const textAction = strJP(action)
+  return [
+    {
+      'type': 'section',
+      'text': {
+        'type': 'plain_text',
+        'text': `${textAction}しますか？`,
+        'emoji': true
+      }
+    },
+    {
+      'type': 'actions',
+      'elements': [
+        {
+          'type': 'button',
+          'text': {
+            'type': 'plain_text',
+            'emoji': true,
+            'text': `${textAction}`
+          },
+          'action_id': `${action}`,
+          'style': 'primary'
+        },
+        {
+          'type': 'button',
+          'text': {
+            'type': 'plain_text',
+            'emoji': true,
+            'text': 'キャンセル'
+          },
+          'action_id': `cancel`
+        }
+      ]
+    }
+  ]
+}
+
+const slackPostEphemeral = (channel, text, user, blocks) => {
+  const url = 'https://slack.com/api/chat.postEphemeral'
+  const data = {
+    channel,
+    text,
+    user,
+    blocks
+  }
+  const options = {
+    method: 'post',
+    contentType: 'application/json',
+    headers: {
+      Authorization: 'Bearer ' + process.env.SLACK_BOT_OAUTH_TOKEN
+    },
+    payload: JSON.stringify(data)
+  }
+  UrlFetchApp.fetch(url, options)
 }
